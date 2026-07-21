@@ -1,0 +1,141 @@
+{
+  "users": [
+    {
+      "id": "u-owner",
+      "phoneNumber": "menuskh",
+      "name": "ម្ចាស់កម្មសិទ្ធិប្រព័ន្ធ (System Owner)",
+      "role": "owner",
+      "password": "123456",
+      "createdAt": "2026-07-21T05:15:54.470Z",
+      "tenantId": "system"
+    }
+  ],
+  "orders": [],
+  "menu": [
+    {
+      "id": "m-b5ahc5zp4",
+      "nameKh": "អាម៉ុកត្រី",
+      "nameEn": "Fish Amok",
+      "price": 4.5,
+      "category": "dish",
+      "categoryKh": "ម្ហូបកុម្ម៉ង់",
+      "descriptionKh": "ត្រីទឹកសាបស្រស់ៗ ចំហុយជាមួយគ្រឿងការីខ្មែរ ខ្ទិះដូង និងស្លឹកញរ នៅក្នុងកញ្ចប់ស្លឹកចេកយ៉ាងឈ្ងុយឆ្ងាញ់។",
+      "descriptionEn": "Fresh river fish steamed with Khmer lemongrass paste, coconut cream, and noni leaves inside a banana leaf cup.",
+      "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    },
+    {
+      "id": "m-evc78i22y",
+      "nameKh": "ឡុកឡាក់សាច់គោ",
+      "nameEn": "Beef Lok Lak",
+      "price": 5,
+      "category": "dish",
+      "categoryKh": "ម្ហូបកុម្ម៉ង់",
+      "descriptionKh": "សាច់គោផុយៗឆាជាមួយទឹកស៊ីអ៊ីវ ខ្ទឹមស និងម្រេចកំពត បម្រើជាមួយបាយក្តៅៗ ពងទាចៀន និងទឹកជ្រលក់ម្រេចក្រូចឆ្មារ។",
+      "descriptionEn": "Tender stir-fried beef cubes in brown savory sauce, served with jasmine rice, a fried egg, fresh greens, and a lime-pepper dipping sauce.",
+      "imageUrl": "https://images.unsplash.com/photo-1512058564366-18510be2db19?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    },
+    {
+      "id": "m-4abz8is8k",
+      "nameKh": "សម្លកកូរ",
+      "nameEn": "Samlor Korkor",
+      "price": 4,
+      "category": "soup",
+      "categoryKh": "សម្ល/ស៊ុប",
+      "descriptionKh": "សម្លបុរាណខ្មែរ សម្បូរទៅដោយបន្លែចម្រុះ សាច់ត្រី ឬសាច់មាន់ គ្រឿងបុក លាយជាមួយអង្ករលីងបុកយ៉ាងឈ្ងុយ។",
+      "descriptionEn": "Traditional Khmer multi-vegetable soup cooked with fish or chicken, lemongrass paste, and roasted crushed rice.",
+      "imageUrl": "https://images.unsplash.com/photo-1547592180-85f173990554?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    },
+    {
+      "id": "m-k2laml6z8",
+      "nameKh": "សម្លម្ជូរគ្រឿងសាច់គោ",
+      "nameEn": "Lemongrass Beef Sour Soup",
+      "price": 4.5,
+      "category": "soup",
+      "categoryKh": "សម្ល/ស៊ុប",
+      "descriptionKh": "សម្លម្ជូរគ្រឿងបែបខ្មែរដាក់សាច់គោ និងត្រកួន ជាមួយទឹកស៊ុបម្ជូរគ្រឿងបុក ស្លឹកក្រូចសើច និងប្រហុកឈ្ងុយឆ្ងាញ់។",
+      "descriptionEn": "A flavorful Khmer sour soup with beef, water spinach, lemongrass paste, kaffir lime leaves, and authentic fish paste.",
+      "imageUrl": "https://images.unsplash.com/photo-1607532941433-304659e8198a?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    },
+    {
+      "id": "m-j7d407e0a",
+      "nameKh": "ញាំស្វាយខ្ចីត្រីឆ្អើរ",
+      "nameEn": "Green Mango Salad with Smoked Fish",
+      "price": 3.5,
+      "category": "dish",
+      "categoryKh": "ម្ហូបកុម្ម៉ង់",
+      "descriptionKh": "ស្វាយខ្ចីហាន់ជាសរសៃៗ ច្របល់ជាមួយត្រីឆ្អើរឈ្ងុយៗ ជីរគ្រប់មុខ សណ្តែកដី លាយទឹកត្រីផ្អែមហឹរល្មម។",
+      "descriptionEn": "Shredded green mango tossed with fragrant smoked river fish, mixed fresh herbs, peanuts, and a sweet-and-sour fish sauce dressing.",
+      "imageUrl": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    },
+    {
+      "id": "m-zklzwgcnu",
+      "nameKh": "កាហ្វេដូងខ្ទិះទឹកកក",
+      "nameEn": "Iced Coconut Milk Coffee",
+      "price": 2.2,
+      "category": "drink",
+      "categoryKh": "ភេសជ្ជៈ",
+      "descriptionKh": "កាហ្វេដិតបែបខ្មែរ លាយជាមួយខ្ទិះដូងស្រស់ និងទឹកដោះគោខាប់ ផ្អែមឈ្ងុយឆ្ងាញ់ និងមានជាតិត្រជាក់ដល់បេះដូង។",
+      "descriptionEn": "Rich, bold Cambodian drip coffee blended with fresh coconut milk and sweet condensed milk over ice.",
+      "imageUrl": "https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    },
+    {
+      "id": "m-05v6nzsw8",
+      "nameKh": "តែបៃតងក្រូចឆ្មារប្លែក",
+      "nameEn": "Lemon Green Tea",
+      "price": 1.8,
+      "category": "drink",
+      "categoryKh": "ភេសជ្ជៈ",
+      "descriptionKh": "តែបៃតងក្រូចឆ្មារត្រជាក់ៗ ផ្អែមមុតជូរស្រទន់ ជួយបំបាត់ភាពហត់នឿយ និងផ្តល់ភាពស្រស់ស្រាយពេញមួយថ្ងៃ។",
+      "descriptionEn": "Chilled Jasmine green tea infused with freshly squeezed lime juice and a touch of sweetness.",
+      "imageUrl": "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    },
+    {
+      "id": "m-eevye7552",
+      "nameKh": "បាយដំណើបស្វាយទុំ",
+      "nameEn": "Mango Sticky Rice",
+      "price": 2.5,
+      "category": "dessert",
+      "categoryKh": "បង្អែម",
+      "descriptionKh": "បាយដំណើបខ្ទិះដូងផ្អែមស្រទន់ បម្រើជាមួយស្វាយទុំផ្អែមល្ហែម និងស្រោចទឹកខ្ទិះដូងដើមពីលើ។",
+      "descriptionEn": "Sweet warm glutinous rice cooked in rich coconut milk, paired with ripe sweet mango slices and topped with sesame seeds.",
+      "imageUrl": "https://images.unsplash.com/photo-1534422298391-e4f8c172dddb?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    },
+    {
+      "id": "m-mj97e33tz",
+      "nameKh": "បង្អែមចេកខ្ទិះ",
+      "nameEn": "Banana in Coconut Milk",
+      "price": 1.5,
+      "category": "dessert",
+      "categoryKh": "បង្អែម",
+      "descriptionKh": "បង្អែមចេកណាំវ៉ាឆ្អិនល្មម ដាំជាមួយទឹកខ្ទិះដូង ស្ករត្នោត ស្លឹកតើយ និងគ្រាប់សណ្តែកដីលីងពីលើ។",
+      "descriptionEn": "Sweet ripe bananas simmered in thick coconut cream, flavored with palm sugar, pandan leaves, and topped with crushed roasted peanuts.",
+      "imageUrl": "https://images.unsplash.com/photo-1551024601-bec78aea704b?w=400&auto=format&fit=crop&q=80",
+      "isAvailable": true,
+      "tenantId": "system"
+    }
+  ],
+  "tenants": [],
+  "systemSettings": {
+    "loginLogoUrl": "",
+    "loginBgType": "default",
+    "loginBgUrl": "",
+    "titleKh": "ម៉ឺនុយខ្មែរ (Menus KH)",
+    "descKh": "ប្រព័ន្ធគ្រប់គ្រងម៉ឺនុយ និងការកុម្ម៉ង់អាហារក្នុងហាងបែបទំនើប"
+  }
+}

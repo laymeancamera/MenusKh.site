@@ -162,10 +162,37 @@ export function generateThemeCSS(theme: CustomTheme): string {
     }
 
     /* Apply theme overrides globally */
+    html, body {
+      background-color: var(--theme-bg) !important;
+      color: var(--theme-text) !important;
+      transition: background-color 0.3s ease;
+    }
+
     .app-theme-container {
       background-color: var(--theme-bg) !important;
       color: var(--theme-text) !important;
       font-family: var(--theme-font) !important;
+    }
+
+    /* Force background override on min-h-screen children to support ThemeCustomizer */
+    .app-theme-container .min-h-screen,
+    .app-theme-container .min-h-screen-container {
+      background-color: var(--theme-bg) !important;
+    }
+
+    /* Adjust headers dynamically inside custom theme container */
+    .app-theme-container header,
+    .app-theme-container .theme-header {
+      background-color: var(--theme-card) !important;
+      border-color: var(--theme-border) !important;
+    }
+
+    .app-theme-container header h1,
+    .app-theme-container header h2,
+    .app-theme-container header h3,
+    .app-theme-container header p,
+    .app-theme-container header span {
+      color: var(--theme-text) !important;
     }
 
     /* Card customization */

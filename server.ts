@@ -20,7 +20,7 @@ let database = {
       phoneNumber: 'menuskh',
       name: 'ម្ចាស់កម្មសិទ្ធិប្រព័ន្ធ (System Owner)',
       role: 'owner' as const,
-      password: 'admin',
+      password: '123456',
       createdAt: new Date().toISOString(),
       tenantId: 'system'
     }
@@ -64,15 +64,15 @@ try {
           phoneNumber: 'menuskh',
           name: 'ម្ចាស់កម្មសិទ្ធិប្រព័ន្ធ (System Owner)',
           role: 'owner' as const,
-          password: 'admin',
+          password: '123456',
           createdAt: new Date().toISOString(),
           tenantId: 'system'
         };
         database.users.push(ownerUser);
       } else {
-        // Upgrade existing owner credentials to menuskh / admin
+        // Upgrade existing owner credentials to menuskh / 123456
         ownerUser.phoneNumber = 'menuskh';
-        ownerUser.password = 'admin';
+        ownerUser.password = '123456';
       }
       
       // Clean up any stale owner entry with the old name or phone
@@ -515,12 +515,12 @@ app.post('/api/tenants', (req, res) => {
     return res.status(400).json({ error: 'សូមបំពេញព័ត៌មានអោយបានគ្រប់គ្រាន់សម្រាប់គណនីទាំង ៣ (Please fill in all details for all 3 user profiles)' });
   }
 
-  // Check for phone number overlaps/uniqueness
-  const phonesToCheck = [adminPhone, waiterPhone, chefPhone];
-  const duplicatePhone = database.users.find(u => phonesToCheck.includes(u.phoneNumber));
-  if (duplicatePhone) {
+  // Check for username overlaps/uniqueness
+  const usernamesToCheck = [adminPhone, waiterPhone, chefPhone];
+  const duplicateUser = database.users.find(u => usernamesToCheck.includes(u.phoneNumber));
+  if (duplicateUser) {
     return res.status(400).json({
-      error: `លេខទូរស័ព្ទ ${duplicatePhone.phoneNumber} ត្រូវបានប្រើប្រាស់រួចហើយ។ សូមប្រើលេខផ្សេង! (Phone number ${duplicatePhone.phoneNumber} is already taken. Please use unique numbers!)`
+      error: `ឈ្មោះគណនី (Username) "${duplicateUser.phoneNumber}" ត្រូវបានប្រើប្រាស់រួចហើយ។ សូមប្រើ Username ផ្សេងទៀត! (Username "${duplicateUser.phoneNumber}" is already taken. Please use a unique username!)`
     });
   }
 
