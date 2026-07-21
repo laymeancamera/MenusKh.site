@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { 
   Plus, Edit2, Trash2, Search, Filter, DollarSign, Image as ImageIcon, 
   Check, X, LogOut, Utensils, TrendingUp, Sparkles, Database, 
   AlertTriangle, Grid, ToggleLeft, ToggleRight, CheckCircle, HelpCircle,
-  Upload, Loader2
+  Upload, Loader2, CloudLightning, Calendar, ArrowRight
 } from 'lucide-react';
 import { MenuItem, User } from '../types.js';
 
@@ -37,6 +37,40 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
   // Navigation & Filtering
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+
+  // System Update States
+  const [updateInfo, setUpdateInfo] = useState<any>(null);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [applyingUpdate, setApplyingUpdate] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
+  const fetchUpdateStatus = async () => {
+    try {
+      if (currentUser?.tenantId) {
+        const res = await fetch(`/api/system/update/check?tenantId=${currentUser.tenantId}`);
+        if (res.ok) {
+          const data = await res.json();
+          setUpdateInfo(data);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch system update info:', e);
+    }
+  };
+
+  useEffect(() => {
+    fetchUpdateStatus();
+
+    // Listen to real-time update notifications from parent SSE or custom events
+    const handleUpdatePushed = () => {
+      fetchUpdateStatus();
+    };
+
+    window.addEventListener('sse_system_update_pushed', handleUpdatePushed);
+    return () => {
+      window.removeEventListener('sse_system_update_pushed', handleUpdatePushed);
+    };
+  }, [currentUser]);
 
   // Modal forms
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -319,6 +353,21 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
         <div className="flex items-center gap-3">
           <button
             type="button"
+            onClick={() => setShowUpdateModal(true)}
+            className="relative p-2.5 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-150 text-orange-600 transition-all cursor-pointer flex items-center justify-center"
+            title="ប្រព័ន្ធអាប់ដេត (Update Center)"
+          >
+            <CloudLightning className="w-4.5 h-4.5" />
+            {updateInfo?.updateAvailable && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white animate-ping" />
+            )}
+            {updateInfo?.updateAvailable && (
+              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white" />
+            )}
+          </button>
+
+          <button
+            type="button"
             id="admin-btn-add"
             onClick={handleOpenAdd}
             className="bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
@@ -351,6 +400,32 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
 
       {/* Main Body */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        {updateInfo?.updateAvailable && (
+          <div className="bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 rounded-3xl p-5 text-white flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg animate-fade-in relative overflow-hidden border border-orange-400/25">
+            <div className="absolute top-[-20%] left-[-10%] w-[35%] h-[150%] bg-white/5 skew-x-12 -translate-x-full animate-[shimmer_6s_infinite] pointer-events-none" />
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/10 text-white rounded-2xl border border-white/20 shrink-0 shadow-inner flex items-center justify-center">
+                <CloudLightning className="w-6 h-6 animate-bounce" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h4 className="text-xs md:text-sm font-moul leading-normal text-white">ប្រព័ន្ធថ្មីជំនាន់ Version {updateInfo.latestUpdate?.latestVersion} ត្រូវបានបញ្ចេញរួចរាល់!</h4>
+                  <span className="text-[9px] bg-white text-orange-700 font-extrabold px-2.5 py-0.5 rounded-full border border-orange-200 uppercase font-sans animate-pulse">Update available</span>
+                </div>
+                <p className="text-[10px] text-orange-50/90 font-medium font-koh mt-1 leading-relaxed">
+                  ម្ចាស់កម្មសិទ្ធិ (System Owner) បានបញ្ចេញមុខងារថ្មីៗ និងបន្ថែមគំរូបញ្ជីមុខម្ហូបពិសេសចំនួន {updateInfo.latestUpdate?.menuTemplate?.length || 0} មុខ។ ចុចប៊ូតុងខាងស្តាំដើម្បីទាញយកទិន្នន័យថ្មីមកហាងរបស់អ្នកភ្លាមៗ!
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowUpdateModal(true)}
+              className="bg-white hover:bg-orange-50 text-orange-700 font-bold font-koh text-xs py-2.5 px-5 rounded-xl shadow-md transition-all active:scale-95 shrink-0 whitespace-nowrap cursor-pointer hover:shadow-lg border border-orange-100"
+            >
+              ទាញយក និងតម្លើង (Get Update)
+            </button>
+          </div>
+        )}
         
         {/* Statistics Panels (Bento style) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -844,6 +919,192 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
                 លុបចោល (Yes, Delete)
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* UPDATE CENTER MODAL */}
+      {showUpdateModal && updateInfo && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4 z-50 overflow-y-auto animate-fade-in font-koh">
+          <div className="bg-white rounded-3xl w-full max-w-xl shadow-2xl border border-slate-100 overflow-hidden flex flex-col relative animate-scale-up">
+            
+            <div className="flex justify-between items-center bg-slate-50 px-6 py-4 border-b border-slate-100">
+              <div className="flex items-center gap-2">
+                <CloudLightning className="w-5 h-5 text-orange-600 animate-bounce" />
+                <span className="font-moul text-xs text-slate-700 leading-normal">ប្រព័ន្ធអាប់ដេតជំនាន់កម្មវិធី (Update Center)</span>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (!applyingUpdate) {
+                    setShowUpdateModal(false);
+                    setUpdateSuccess(false);
+                  }
+                }}
+                className="text-slate-400 hover:text-slate-600 font-bold text-sm cursor-pointer bg-slate-100 w-6 h-6 rounded-full flex items-center justify-center"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 md:p-8 space-y-5">
+              {updateSuccess ? (
+                <div className="text-center py-6 space-y-4 animate-scale-up text-slate-700">
+                  <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-md">
+                    <CheckCircle className="w-10 h-10 stroke-[2.5]" />
+                  </div>
+                  <h3 className="font-moul text-sm text-slate-800 leading-normal">ការអាប់ដេតទទួលបានជោគជ័យ!</h3>
+                  <p className="text-xs text-slate-500 leading-relaxed max-w-sm mx-auto">
+                    ប្រព័ន្ធហាងរបស់អ្នកត្រូវបានដំឡើងទៅកាន់ <span className="font-sans font-bold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">Version {updateInfo.latestUpdate?.latestVersion}</span> ដោយជោគជ័យ។ មុខម្ហូបលំដាប់ Premium ថ្មីៗត្រូវបានបញ្ចូលក្នុងបញ្ជីរួចរាល់!
+                  </p>
+                  
+                  <div className="pt-4">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowUpdateModal(false);
+                        setUpdateSuccess(false);
+                      }}
+                      className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs py-2.5 px-6 rounded-xl shadow-md transition-all active:scale-95 cursor-pointer"
+                    >
+                      បិទផ្ទាំង (Got it!)
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4 text-slate-700">
+                  {/* Version Comparison Header */}
+                  <div className="bg-orange-50/50 border border-orange-100 p-4 rounded-2xl flex items-center justify-between">
+                    <div className="text-left">
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">ជំនាន់បច្ចុប្បន្ន (Current)</span>
+                      <span className="text-base font-black font-sans text-slate-700">v{updateInfo.tenantVersion}</span>
+                    </div>
+                    <ArrowRight className="w-5 h-5 text-orange-400 animate-pulse" />
+                    <div className="text-right">
+                      <span className="text-[10px] font-bold text-slate-400 block uppercase">ជំនាន់ចុងក្រោយ (Latest)</span>
+                      <span className="text-base font-black font-sans text-orange-600 bg-orange-100 px-2.5 py-0.5 rounded-lg border border-orange-200">v{updateInfo.latestUpdate?.latestVersion}</span>
+                    </div>
+                  </div>
+
+                  {/* Release date */}
+                  <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <Calendar className="w-4 h-4 text-slate-400" />
+                    <span>កាលបរិច្ឆេទបញ្ចេញ: <span className="font-bold font-sans">{updateInfo.latestUpdate?.releaseDate}</span></span>
+                  </div>
+
+                  {/* Changelog section */}
+                  <div className="space-y-2">
+                    <h4 className="text-xs font-bold text-slate-700 text-left">📋 កំណត់ហេតុនៃការកែប្រែ (Change Log)</h4>
+                    <div className="bg-slate-50 rounded-2xl p-4 text-xs text-slate-600 leading-relaxed whitespace-pre-line border border-slate-100 max-h-[140px] overflow-y-auto text-left">
+                      {updateInfo.latestUpdate?.changeLogKh || 'គ្មានកំណត់ហេតុនៃការកែប្រែភាសាខ្មែរឡើយ'}
+                    </div>
+                  </div>
+
+                  {/* Included Menu Templates */}
+                  {updateInfo.latestUpdate?.menuTemplate && updateInfo.latestUpdate.menuTemplate.length > 0 && (
+                    <div className="space-y-2">
+                      <h4 className="text-xs font-bold text-slate-700 text-left">🍲 មុខម្ហូបពិសេសដែលនឹងត្រូវបន្ថែម (Premium Special Dishes)</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {updateInfo.latestUpdate.menuTemplate.map((item: any, i: number) => (
+                          <div key={i} className="border border-slate-100 rounded-xl p-2.5 bg-slate-50/50 flex flex-col items-center text-center">
+                            <img 
+                              src={item.imageUrl} 
+                              alt={item.nameEn} 
+                              className="w-10 h-10 rounded-lg object-cover border border-slate-100 mb-1"
+                              referrerPolicy="no-referrer"
+                            />
+                            <p className="text-[10px] font-bold text-slate-700 truncate w-full">{item.nameKh}</p>
+                            <p className="text-[9px] font-sans text-orange-600 font-extrabold mt-0.5">${item.price.toFixed(2)}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Warning if already updated */}
+                  {!updateInfo.updateAvailable && (
+                    <div className="bg-emerald-50 border border-emerald-100 text-emerald-800 rounded-2xl p-3.5 flex items-center gap-2.5">
+                      <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                      <p className="text-[11px] font-bold">ប្រព័ន្ធរបស់លោកអ្នកកំពុងប្រើប្រាស់ជំនាន់ចុងក្រោយបង្អស់រួចរាល់ហើយ!</p>
+                    </div>
+                  )}
+
+                  {/* Action buttons */}
+                  {updateInfo.updateAvailable ? (
+                    <div className="pt-4 border-t border-slate-100 flex justify-end gap-3 font-koh">
+                      <button
+                        type="button"
+                        disabled={applyingUpdate}
+                        onClick={() => setShowUpdateModal(false)}
+                        className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold text-xs cursor-pointer"
+                      >
+                        មិនទាន់អាប់ដេត (Later)
+                      </button>
+                      <button
+                        type="button"
+                        disabled={applyingUpdate}
+                        onClick={async () => {
+                          setApplyingUpdate(true);
+                          try {
+                            const res = await fetch('/api/system/update/apply', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ tenantId: currentUser.tenantId })
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              setUpdateSuccess(true);
+                              
+                              // Trigger update checks and refetch of the menu list!
+                              fetchUpdateStatus();
+                              
+                              // Refetch the menu items for this tenant
+                              const menuRes = await fetch(`/api/menu?tenantId=${currentUser.tenantId}`);
+                              if (menuRes.ok) {
+                                const newMenu = await menuRes.json();
+                                onMenuUpdated(newMenu);
+                              }
+                            } else {
+                              const err = await res.json();
+                              alert(err.error || 'ការអាប់ដេតបានបរាជ័យ');
+                            }
+                          } catch (e) {
+                            console.error(e);
+                            alert('Network connection error');
+                          } finally {
+                            setApplyingUpdate(false);
+                          }
+                        }}
+                        className="bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs py-2.5 px-6 rounded-xl shadow-md transition-all active:scale-95 flex items-center gap-2 disabled:opacity-50 cursor-pointer"
+                      >
+                        {applyingUpdate ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            <span>កំពុងតំឡើង...</span>
+                          </>
+                        ) : (
+                          <>
+                            <CloudLightning className="w-4 h-4 animate-pulse" />
+                            <span>ទាញយក និងតំឡើងឥឡូវនេះ (Update Now)</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="pt-4 border-t border-slate-100 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setShowUpdateModal(false)}
+                        className="px-5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-500 font-bold text-xs cursor-pointer"
+                      >
+                        បិទ (Close)
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
           </div>
         </div>
       )}

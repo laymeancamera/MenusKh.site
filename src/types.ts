@@ -25,6 +25,23 @@ export interface Tenant {
   chefPhone: string;
   chefPassword?: string;
   logoUrl?: string;
+  version?: string;
+}
+
+export interface SystemUpdate {
+  latestVersion: string;
+  releaseDate: string;
+  changeLogKh: string;
+  changeLogEn: string;
+  menuTemplate: {
+    nameKh: string;
+    nameEn: string;
+    price: number;
+    category: 'dish' | 'soup' | 'drink' | 'dessert';
+    descriptionKh: string;
+    descriptionEn: string;
+    imageUrl: string;
+  }[];
 }
 
 export interface MenuItem {

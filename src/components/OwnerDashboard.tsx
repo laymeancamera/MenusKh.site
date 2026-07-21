@@ -40,6 +40,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { User as UserType, Tenant } from '../types.js';
+import SystemUpdatesManager from './SystemUpdatesManager.js';
 
 interface OwnerDashboardProps {
   currentUser: UserType;
@@ -55,7 +56,7 @@ export default function OwnerDashboard({ currentUser, onLogout }: OwnerDashboard
   const [successMsg, setSuccessMsg] = useState('');
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'platforms' | 'login_config'>('platforms');
+  const [activeTab, setActiveTab] = useState<'platforms' | 'login_config' | 'system_updates'>('platforms');
 
   // Form State for creating a new tenant
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -593,6 +594,17 @@ export default function OwnerDashboard({ currentUser, onLogout }: OwnerDashboard
               >
                 <Settings className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">កំណត់ផ្ទាំង Login</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('system_updates')}
+                className={`flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-koh font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                  activeTab === 'system_updates' 
+                    ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.25)] font-extrabold' 
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                }`}
+              >
+                <CloudLightning className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate">គ្រប់គ្រងការ Update</span>
               </button>
             </div>
 
@@ -1513,6 +1525,10 @@ export default function OwnerDashboard({ currentUser, onLogout }: OwnerDashboard
             </div>
 
           </div>
+        )}
+
+        {activeTab === 'system_updates' && (
+          <SystemUpdatesManager />
         )}
 
       </main>

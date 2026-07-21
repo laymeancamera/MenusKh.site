@@ -77,6 +77,11 @@ export default function App() {
       setMenu(filtered);
     });
 
+    sse.addEventListener('system_update_pushed', (e) => {
+      console.log('[SSE] System update pushed!');
+      window.dispatchEvent(new CustomEvent('sse_system_update_pushed'));
+    });
+
     sse.onopen = () => {
       console.log('[SSE] Live stream connection established successfully.');
     };

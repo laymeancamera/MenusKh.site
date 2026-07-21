@@ -34,6 +34,41 @@ let database = {
     loginBgUrl: '',
     titleKh: 'ម៉ឺនុយខ្មែរ (Menus KH)',
     descKh: 'ប្រព័ន្ធគ្រប់គ្រងម៉ឺនុយ និងការកុម្ម៉ង់អាហារក្នុងហាងបែបទំនើប'
+  },
+  systemUpdates: {
+    latestVersion: '3.5',
+    releaseDate: '2026-07-21',
+    changeLogKh: 'លក្ខណៈពិសេសថ្មីៗជំនាន់ 3.5:\n1. បន្ថែមមុខម្ហូបពិសេសលំដាប់ Premium ចំនួន ៣ ប្រភេទ\n2. បង្កើនល្បឿនដំណើរការប្រព័ន្ធ និងកែសម្រួលផ្ទៃកម្មវិធីឱ្យកាន់តែស្រស់ស្អាត\n3. ធ្វើឱ្យប្រសើរឡើងនូវការបោះពុម្ពវិក្កយបត្រ (Invoice Printing) និង QR Code\n4. ស្វ័យប្រវត្តភាសាខ្មែរពេញលេញសម្រាប់រាយការណ៍',
+    changeLogEn: 'New Features in Version 3.5:\n1. Added 3 premium special dishes with dynamic customization\n2. Enhanced UI performance and layout aesthetics\n3. Improved invoice printing & dynamic KHQR codes\n4. Full Khmer localization for advanced reporting',
+    menuTemplate: [
+      {
+        nameKh: 'អាម៉ុកត្រីភ្នំពេញ Premium',
+        nameEn: 'Phnom Penh Premium Fish Amok',
+        price: 8.5,
+        category: 'dish',
+        descriptionKh: 'អាម៉ុកត្រីបែបប្រពៃណីខ្មែរចម្អិនក្នុងកូនក្អមដីដុត ក្លិនឈ្ងុយគ្រឿងខ្ទិះដូងជ្រៅ បន្ថែមសាច់ក្តាម',
+        descriptionEn: 'Traditional Khmer fish amok slow-cooked in a clay pot, rich in coconut cream with fresh crab meat',
+        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'
+      },
+      {
+        nameKh: 'ស៊ុបកន្ទុយគោពិសេសលេខ១',
+        nameEn: 'Special Oxtail Soup No.1',
+        price: 12.0,
+        category: 'soup',
+        descriptionKh: 'ស៊ុបកន្ទុយគោរម្ងាស់ ២៤ ម៉ោង ជាមួយឱសថបុរាណ រសជាតិដិតដល់ ជំនួយសុខភាព',
+        descriptionEn: '24-hour slow-simmered oxtail soup with traditional herbs, rich and nourishing',
+        imageUrl: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop&q=80'
+      },
+      {
+        nameKh: 'តែបៃតងខ្ទិះដូងត្រជាក់ចិត្ត',
+        nameEn: 'Iced Coconut Matcha Latte',
+        price: 3.5,
+        category: 'drink',
+        descriptionKh: 'តែបៃតង Matcha ជប៉ុនលាយជាមួយទឹកខ្ទិះដូងខ្មែរស្រស់ ផ្អែមស្រទន់ ឈ្ងុយប្លែកមាត់',
+        descriptionEn: 'Japanese Matcha green tea layered with fresh Khmer coconut milk, subtly sweet and aromatic',
+        imageUrl: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&auto=format&fit=crop&q=80'
+      }
+    ]
   }
 };
 
@@ -55,6 +90,43 @@ try {
       }
       if (!database.tenants) {
         database.tenants = [];
+      }
+      if (!database.systemUpdates) {
+        database.systemUpdates = {
+          latestVersion: '3.5',
+          releaseDate: '2026-07-21',
+          changeLogKh: 'លក្ខណៈពិសេសថ្មីៗជំនាន់ 3.5:\n1. បន្ថែមមុខម្ហូបពិសេសលំដាប់ Premium ចំនួន ៣ ប្រភេទ\n2. បង្កើនល្បឿនដំណើរការប្រព័ន្ធ និងកែសម្រួលផ្ទៃកម្មវិធីឱ្យកាន់តែស្រស់ស្អាត\n3. ធ្វើឱ្យប្រសើរឡើងនូវការបោះពុម្ពវិក្កយបត្រ (Invoice Printing) និង QR Code\n4. ស្វ័យប្រវត្តភាសាខ្មែរពេញលេញសម្រាប់រាយការណ៍',
+          changeLogEn: 'New Features in Version 3.5:\n1. Added 3 premium special dishes with dynamic customization\n2. Enhanced UI performance and layout aesthetics\n3. Improved invoice printing & dynamic KHQR codes\n4. Full Khmer localization for advanced reporting',
+          menuTemplate: [
+            {
+              nameKh: 'អាម៉ុកត្រីភ្នំពេញ Premium',
+              nameEn: 'Phnom Penh Premium Fish Amok',
+              price: 8.5,
+              category: 'dish',
+              descriptionKh: 'អាម៉ុកត្រីបែបប្រពៃណីខ្មែរចម្អិនក្នុងកូនក្អមដីដុត ក្លិនឈ្ងុយគ្រឿងខ្ទិះដូងជ្រៅ បន្ថែមសាច់ក្តាម',
+              descriptionEn: 'Traditional Khmer fish amok slow-cooked in a clay pot, rich in coconut cream with fresh crab meat',
+              imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'
+            },
+            {
+              nameKh: 'ស៊ុបកន្ទុយគោពិសេសលេខ១',
+              nameEn: 'Special Oxtail Soup No.1',
+              price: 12.0,
+              category: 'soup',
+              descriptionKh: 'ស៊ុបកន្ទុយគោរម្ងាស់ ២៤ ម៉ោង ជាមួយឱសថបុរាណ រសជាតិដិតដល់ ជំនួយសុខភាព',
+              descriptionEn: '24-hour slow-simmered oxtail soup with traditional herbs, rich and nourishing',
+              imageUrl: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop&q=80'
+            },
+            {
+              nameKh: 'តែបៃតងខ្ទិះដូងត្រជាក់ចិត្ត',
+              nameEn: 'Iced Coconut Matcha Latte',
+              price: 3.5,
+              category: 'drink',
+              descriptionKh: 'តែបៃតង Matcha ជប៉ុនលាយជាមួយទឹកខ្ទិះដូងខ្មែរស្រស់ ផ្អែមស្រទន់ ឈ្ងុយប្លែកមាត់',
+              descriptionEn: 'Japanese Matcha green tea layered with fresh Khmer coconut milk, subtly sweet and aromatic',
+              imageUrl: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&auto=format&fit=crop&q=80'
+            }
+          ]
+        };
       }
       // Ensure system owner user exists and has the correct updated credentials
       let ownerUser = database.users.find(u => u.role === 'owner');
@@ -105,6 +177,9 @@ try {
           if (!t.chefPassword) {
             const u = database.users.find(usr => usr.tenantId === t.id && usr.role === 'chef');
             if (u) t.chefPassword = (u as any).password || t.chefPhone;
+          }
+          if (!t.version) {
+            t.version = '3.4';
           }
         });
       }
@@ -635,6 +710,203 @@ app.delete('/api/tenants/:id', (req, res) => {
   saveDB();
 
   res.json({ success: true, message: 'បានលុបប្រព័ន្ធហាង និងគណនី/ទិន្នន័យពាក់ព័ន្ធទាំងអស់ដោយជោគជ័យ! (Restaurant and all associated accounts/data deleted successfully)' });
+});
+
+// --- System Update Endpoints (SaaS & Tenant Update Sync) ---
+
+// Check latest update status
+app.get('/api/system/update/check', (req, res) => {
+  const { tenantId } = req.query;
+  const latestUpdate = database.systemUpdates || {
+    latestVersion: '3.5',
+    releaseDate: '2026-07-21',
+    changeLogKh: 'លក្ខណៈពិសេសថ្មីៗជំនាន់ 3.5:\n1. បន្ថែមមុខម្ហូបពិសេសលំដាប់ Premium ចំនួន ៣ ប្រភេទ\n2. បង្កើនល្បឿនដំណើរការប្រព័ន្ធ និងកែសម្រួលផ្ទៃកម្មវិធីឱ្យកាន់តែស្រស់ស្អាត\n3. ធ្វើឱ្យប្រសើរឡើងនូវការបោះពុម្ពវិក្កយបត្រ (Invoice Printing) និង QR Code\n4. ស្វ័យប្រវត្តភាសាខ្មែរពេញលេញសម្រាប់រាយការណ៍',
+    changeLogEn: 'New Features in Version 3.5:\n1. Added 3 premium special dishes with dynamic customization\n2. Enhanced UI performance and layout aesthetics\n3. Improved invoice printing & dynamic KHQR codes\n4. Full Khmer localization for advanced reporting',
+    menuTemplate: [
+      {
+        nameKh: 'អាម៉ុកត្រីភ្នំពេញ Premium',
+        nameEn: 'Phnom Penh Premium Fish Amok',
+        price: 8.5,
+        category: 'dish',
+        descriptionKh: 'អាម៉ុកត្រីបែបប្រពៃណីខ្មែរចម្អិនក្នុងកូនក្អមដីដុត ក្លិនឈ្ងុយគ្រឿងខ្ទិះដូងជ្រៅ បន្ថែមសាច់ក្តាម',
+        descriptionEn: 'Traditional Khmer fish amok slow-cooked in a clay pot, rich in coconut cream with fresh crab meat',
+        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'
+      },
+      {
+        nameKh: 'ស៊ុបកន្ទុយគោពិសេសលេខ១',
+        nameEn: 'Special Oxtail Soup No.1',
+        price: 12.0,
+        category: 'soup',
+        descriptionKh: 'ស៊ុបកន្ទុយគោរម្ងាស់ ២៤ ម៉ោង ជាមួយឱសថបុរាណ រសជាតិដិតដល់ ជំនួយសុខភាព',
+        descriptionEn: '24-hour slow-simmered oxtail soup with traditional herbs, rich and nourishing',
+        imageUrl: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop&q=80'
+      },
+      {
+        nameKh: 'តែបៃតងខ្ទិះដូងត្រជាក់ចិត្ត',
+        nameEn: 'Iced Coconut Matcha Latte',
+        price: 3.5,
+        category: 'drink',
+        descriptionKh: 'តែបៃតង Matcha ជប៉ុនលាយជាមួយទឹកខ្ទិះដូងខ្មែរស្រស់ ផ្អែមស្រទន់ ឈ្ងុយប្លែកមាត់',
+        descriptionEn: 'Japanese Matcha green tea layered with fresh Khmer coconut milk, subtly sweet and aromatic',
+        imageUrl: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&auto=format&fit=crop&q=80'
+      }
+    ]
+  };
+
+  if (!database.systemUpdates) {
+    database.systemUpdates = latestUpdate;
+    saveDB();
+  }
+
+  let tenantVersion = '3.4';
+  let updateAvailable = true;
+
+  if (tenantId) {
+    const tenant = database.tenants?.find(t => t.id === tenantId);
+    if (tenant) {
+      if (!tenant.version) {
+        tenant.version = '3.4';
+        saveDB();
+      }
+      tenantVersion = tenant.version;
+      updateAvailable = tenant.version !== latestUpdate.latestVersion;
+    }
+  }
+
+  res.json({
+    latestUpdate,
+    tenantVersion,
+    updateAvailable
+  });
+});
+
+// Push a system update (System Owner / SaaS Creator)
+app.post('/api/system/update/push', (req, res) => {
+  const { latestVersion, releaseDate, changeLogKh, changeLogEn, menuTemplate } = req.body;
+
+  if (!latestVersion) {
+    return res.status(400).json({ error: 'សូមបញ្ជាក់លេខជំនាន់កំណែទម្រង់ (Please specify update version)' });
+  }
+
+  database.systemUpdates = {
+    latestVersion,
+    releaseDate: releaseDate || new Date().toISOString().split('T')[0],
+    changeLogKh: changeLogKh || '',
+    changeLogEn: changeLogEn || '',
+    menuTemplate: menuTemplate || []
+  };
+
+  saveDB();
+
+  // Notify all tenants about the system-wide update availability via SSE
+  broadcastToSSE('system_update_pushed', database.systemUpdates);
+
+  res.json({ success: true, systemUpdates: database.systemUpdates });
+});
+
+// Apply/pull system update to a specific tenant
+app.post('/api/system/update/apply', (req, res) => {
+  const { tenantId } = req.body;
+
+  if (!tenantId) {
+    return res.status(400).json({ error: 'សូមបញ្ជាក់លេខសំគាល់ហាងដៃគូ (Please specify tenantId)' });
+  }
+
+  const tenant = database.tenants?.find(t => t.id === tenantId);
+  if (!tenant) {
+    return res.status(404).json({ error: 'រកមិនឃើញប្រព័ន្ធហាងនេះទេ (Tenant not found)' });
+  }
+
+  const latestUpdate = database.systemUpdates || {
+    latestVersion: '3.5',
+    releaseDate: '2026-07-21',
+    changeLogKh: 'លក្ខណៈពិសេសថ្មីៗជំនាន់ 3.5:\n1. បន្ថែមមុខម្ហូបពិសេសលំដាប់ Premium ចំនួន ៣ ប្រភេទ\n2. បង្កើនល្បឿនដំណើរការប្រព័ន្ធ និងកែសម្រួលផ្ទៃកម្មវិធីឱ្យកាន់តែស្រស់ស្អាត\n3. ធ្វើឱ្យប្រសើរឡើងនូវការបោះពុម្ពវិក្កយបត្រ (Invoice Printing) និង QR Code\n4. ស្វ័យប្រវត្តភាសាខ្មែរពេញលេញសម្រាប់រាយការណ៍',
+    changeLogEn: 'New Features in Version 3.5:\n1. Added 3 premium special dishes with dynamic customization\n2. Enhanced UI performance and layout aesthetics\n3. Improved invoice printing & dynamic KHQR codes\n4. Full Khmer localization for advanced reporting',
+    menuTemplate: [
+      {
+        nameKh: 'អាម៉ុកត្រីភ្នំពេញ Premium',
+        nameEn: 'Phnom Penh Premium Fish Amok',
+        price: 8.5,
+        category: 'dish',
+        descriptionKh: 'អាម៉ុកត្រីបែបប្រពៃណីខ្មែរចម្អិនក្នុងកូនក្អមដីដុត ក្លិនឈ្ងុយគ្រឿងខ្ទិះដូងជ្រៅ បន្ថែមសាច់ក្តាម',
+        descriptionEn: 'Traditional Khmer fish amok slow-cooked in a clay pot, rich in coconut cream with fresh crab meat',
+        imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80'
+      },
+      {
+        nameKh: 'ស៊ុបកន្ទុយគោពិសេសលេខ១',
+        nameEn: 'Special Oxtail Soup No.1',
+        price: 12.0,
+        category: 'soup',
+        descriptionKh: 'ស៊ុបកន្ទុយគោរម្ងាស់ ២៤ ម៉ោង ជាមួយឱសថបុរាណ រសជាតិដិតដល់ ជំនួយសុខភាព',
+        descriptionEn: '24-hour slow-simmered oxtail soup with traditional herbs, rich and nourishing',
+        imageUrl: 'https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop&q=80'
+      },
+      {
+        nameKh: 'តែបៃតងខ្ទិះដូងត្រជាក់ចិត្ត',
+        nameEn: 'Iced Coconut Matcha Latte',
+        price: 3.5,
+        category: 'drink',
+        descriptionKh: 'តែបៃតង Matcha ជប៉ុនលាយជាមួយទឹកខ្ទិះដូងខ្មែរស្រស់ ផ្អែមស្រទន់ ឈ្ងុយប្លែកមាត់',
+        descriptionEn: 'Japanese Matcha green tea layered with fresh Khmer coconut milk, subtly sweet and aromatic',
+        imageUrl: 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&auto=format&fit=crop&q=80'
+      }
+    ]
+  };
+
+  const previousVersion = tenant.version || '3.4';
+  tenant.version = latestUpdate.latestVersion;
+
+  let addedCount = 0;
+  if (latestUpdate.menuTemplate && latestUpdate.menuTemplate.length > 0) {
+    if (!database.menu) {
+      database.menu = [];
+    }
+
+    latestUpdate.menuTemplate.forEach((templateItem: any) => {
+      const exists = database.menu.some(m => 
+        m.tenantId === tenantId && 
+        (m.nameKh.trim().toLowerCase() === templateItem.nameKh.trim().toLowerCase() ||
+         m.nameEn.trim().toLowerCase() === templateItem.nameEn.trim().toLowerCase())
+      );
+
+      if (!exists) {
+        const categoryKh = 
+          templateItem.category === 'dish' ? 'ម្ហូបកុម្ម៉ង់' :
+          templateItem.category === 'soup' ? 'សម្ល/ស៊ុប' :
+          templateItem.category === 'drink' ? 'ភេសជ្ជៈ' : 'បង្អែម';
+
+        const newItem: MenuItem = {
+          id: 'm-' + Math.random().toString(36).substr(2, 9),
+          nameKh: templateItem.nameKh,
+          nameEn: templateItem.nameEn,
+          price: Number(templateItem.price),
+          category: templateItem.category,
+          categoryKh,
+          descriptionKh: templateItem.descriptionKh,
+          descriptionEn: templateItem.descriptionEn,
+          imageUrl: templateItem.imageUrl,
+          isAvailable: true,
+          tenantId
+        };
+
+        database.menu.push(newItem);
+        addedCount++;
+      }
+    });
+  }
+
+  saveDB();
+
+  // Notify all connected clients of this tenant's menu update via SSE
+  broadcastToSSE('menu_updated', database.menu);
+
+  res.json({
+    success: true,
+    message: `បានអាប់ដេតប្រព័ន្ធហាង ${tenant.name} ទៅកាន់ជំនាន់ ${latestUpdate.latestVersion} ដោយជោគជ័យ!`,
+    previousVersion,
+    currentVersion: latestUpdate.latestVersion,
+    addedMenuItemsCount: addedCount
+  });
 });
 
 // SSE Stream Endpoint
