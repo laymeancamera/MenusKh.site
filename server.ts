@@ -9,14 +9,24 @@ const app = express();
 const PORT = 3000;
 const DB_FILE = path.join(process.cwd(), 'db_data.json');
 
+// Enable trust proxy so Express can read x-forwarded-* headers correctly behind Cloud Run/Nginx
+app.set('trust proxy', true);
+
 // Redirect HTTP to HTTPS for secure custom domains to prevent POST-to-GET redirect issues on API requests
 app.use((req, res, next) => {
+  const isHttp = req.headers['x-forwarded-proto'] === 'http' || req.protocol === 'http';
   if (
-    req.headers['x-forwarded-proto'] === 'http' &&
+    isHttp &&
     !req.hostname.includes('localhost') &&
     !req.hostname.includes('127.0.0.1')
   ) {
-    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    if (req.method === 'GET' || req.method === 'HEAD') {
+      return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    } else {
+      // For POST, PUT, DELETE, etc., use 307 or 308 Temporary/Permanent Redirect 
+      // to ensure the browser preserves the original HTTP method and body payload.
+      return res.redirect(307, `https://${req.headers.host}${req.url}`);
+    }
   }
   next();
 });
