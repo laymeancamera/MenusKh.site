@@ -36,6 +36,42 @@ export default function CustomerMenu({
   const [searchQuery, setSearchQuery] = useState('');
   const [tableNumber, setTableNumber] = useState('03'); // default table
   
+  // UI Branding States
+  const [tenantBranding, setTenantBranding] = useState<{
+    customTitleKh?: string;
+    customTitleEn?: string;
+    welcomeMessageKh?: string;
+    welcomeMessageEn?: string;
+    dashboardBannerUrl?: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchBranding = async () => {
+      try {
+        const tenantId = currentUser.tenantId || 't-default';
+        const res = await fetch(`/api/tenants/${tenantId}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.uiConfig) {
+            setTenantBranding(data.uiConfig);
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load customer branding configs:', e);
+      }
+    };
+    fetchBranding();
+
+    // Listener for instant updates when update is applied from dashboard
+    const handleThemeUpdate = () => {
+      fetchBranding();
+    };
+    window.addEventListener('tenant_ui_updated', handleThemeUpdate);
+    return () => {
+      window.removeEventListener('tenant_ui_updated', handleThemeUpdate);
+    };
+  }, [currentUser]);
+
   // Cart State
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -245,7 +281,9 @@ export default function CustomerMenu({
             <Utensils className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-black text-orange-600 tracking-tight">សប្បាយ ម៉ឺនុយ (Sabaay)</h2>
+            <h2 className="text-sm font-black text-orange-600 tracking-tight">
+              {tenantBranding?.customTitleKh || 'សប្បាយ ម៉ឺនុយ'} {tenantBranding?.customTitleEn ? `(${tenantBranding.customTitleEn})` : '(Sabaay)'}
+            </h2>
             <div className="flex items-center gap-1 text-[10px] text-slate-500">
               <User className="w-3 h-3 text-orange-600" />
               <span>{currentUser.name} ({currentUser.phoneNumber})</span>
@@ -322,6 +360,29 @@ export default function CustomerMenu({
         {activeTab === 'browse' ? (
           /* Browse Menu View */
           <>
+            {/* Custom Hero Promo Banner from System Updates */}
+            {(tenantBranding?.dashboardBannerUrl || tenantBranding?.welcomeMessageKh) && (
+              <div className="relative rounded-2xl overflow-hidden shadow-sm border border-orange-100 bg-white h-32 animate-fade-in">
+                <img 
+                  src={tenantBranding.dashboardBannerUrl || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600&auto=format&fit=crop&q=80'} 
+                  alt="Promo Banner" 
+                  className="w-full h-full object-cover brightness-[0.70] absolute inset-0 transition-all hover:scale-105 duration-700"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent flex flex-col justify-end p-4 text-white">
+                  <span className="text-[10px] font-sans font-black bg-orange-600 self-start px-2 py-0.5 rounded-full mb-1 border border-orange-400 uppercase tracking-wider animate-pulse">Special Announcement</span>
+                  <h3 className="text-xs font-bold leading-snug text-amber-200">
+                    {tenantBranding.welcomeMessageKh || 'សូមស្វាគមន៍មកកាន់ប្រព័ន្ធគ្រប់គ្រងការបញ្ជាទិញ!'}
+                  </h3>
+                  {tenantBranding.welcomeMessageEn && (
+                    <p className="text-[10px] text-slate-300 font-sans leading-normal truncate">
+                      {tenantBranding.welcomeMessageEn}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Search Bar */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">

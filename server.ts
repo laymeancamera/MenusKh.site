@@ -13,7 +13,7 @@ const DB_FILE = path.join(process.cwd(), 'db_data.json');
 app.set('trust proxy', true);
 
 // In-memory fallbacks
-let database = {
+let database: any = {
   users: [
     {
       id: 'u-owner',
@@ -40,6 +40,7 @@ let database = {
     releaseDate: '2026-07-21',
     changeLogKh: 'លក្ខណៈពិសេសថ្មីៗជំនាន់ 3.5:\n1. បន្ថែមមុខម្ហូបពិសេសលំដាប់ Premium ចំនួន ៣ ប្រភេទ\n2. បង្កើនល្បឿនដំណើរការប្រព័ន្ធ និងកែសម្រួលផ្ទៃកម្មវិធីឱ្យកាន់តែស្រស់ស្អាត\n3. ធ្វើឱ្យប្រសើរឡើងនូវការបោះពុម្ពវិក្កយបត្រ (Invoice Printing) និង QR Code\n4. ស្វ័យប្រវត្តភាសាខ្មែរពេញលេញសម្រាប់រាយការណ៍',
     changeLogEn: 'New Features in Version 3.5:\n1. Added 3 premium special dishes with dynamic customization\n2. Enhanced UI performance and layout aesthetics\n3. Improved invoice printing & dynamic KHQR codes\n4. Full Khmer localization for advanced reporting',
+    uiConfig: undefined as any,
     menuTemplate: [
       {
         nameKh: 'អាម៉ុកត្រីភ្នំពេញ Premium',
@@ -666,6 +667,16 @@ app.post('/api/tenants', (req, res) => {
   res.status(201).json(newTenant);
 });
 
+// Get individual Tenant configuration
+app.get('/api/tenants/:id', (req, res) => {
+  const { id } = req.params;
+  const tenant = database.tenants?.find(t => t.id === id);
+  if (!tenant) {
+    return res.status(404).json({ error: 'រកមិនឃើញប្រព័ន្ធហាងនេះទេ (Tenant not found)' });
+  }
+  res.json(tenant);
+});
+
 // Update Tenant status (Toggle system block)
 app.put('/api/tenants/:id/status', (req, res) => {
   const { id } = req.params;
@@ -782,7 +793,7 @@ app.get('/api/system/update/check', (req, res) => {
 
 // Push a system update (System Owner / SaaS Creator)
 app.post('/api/system/update/push', (req, res) => {
-  const { latestVersion, releaseDate, changeLogKh, changeLogEn, menuTemplate } = req.body;
+  const { latestVersion, releaseDate, changeLogKh, changeLogEn, menuTemplate, uiConfig } = req.body;
 
   if (!latestVersion) {
     return res.status(400).json({ error: 'សូមបញ្ជាក់លេខជំនាន់កំណែទម្រង់ (Please specify update version)' });
@@ -793,7 +804,8 @@ app.post('/api/system/update/push', (req, res) => {
     releaseDate: releaseDate || new Date().toISOString().split('T')[0],
     changeLogKh: changeLogKh || '',
     changeLogEn: changeLogEn || '',
-    menuTemplate: menuTemplate || []
+    menuTemplate: menuTemplate || [],
+    uiConfig: uiConfig || undefined
   };
 
   saveDB();
@@ -855,6 +867,11 @@ app.post('/api/system/update/apply', (req, res) => {
 
   const previousVersion = tenant.version || '3.4';
   tenant.version = latestUpdate.latestVersion;
+  
+  // Apply visual theme layouts and configurations pushed from System Owner
+  if (latestUpdate.uiConfig) {
+    tenant.uiConfig = { ...latestUpdate.uiConfig };
+  }
 
   let addedCount = 0;
   if (latestUpdate.menuTemplate && latestUpdate.menuTemplate.length > 0) {

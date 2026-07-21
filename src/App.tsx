@@ -45,6 +45,43 @@ export default function App() {
     localStorage.setItem('sabaay_theme', JSON.stringify(newTheme));
   };
 
+  // Fetch tenant customization settings dynamically
+  useEffect(() => {
+    const fetchTenantConfig = async () => {
+      if (currentUser && currentUser.tenantId && currentUser.tenantId !== 'system') {
+        try {
+          const res = await fetch(`/api/tenants/${currentUser.tenantId}`);
+          if (res.ok) {
+            const tenantData = await res.json();
+            if (tenantData.uiConfig) {
+              const matchedPreset = THEME_PRESETS.find(p => p.id === tenantData.uiConfig.themeId);
+              if (matchedPreset) {
+                // Apply the tenant-configured custom theme automatically!
+                setTheme(matchedPreset);
+                localStorage.setItem('sabaay_theme', JSON.stringify(matchedPreset));
+              }
+            }
+          }
+        } catch (e) {
+          console.error('Failed to load tenant custom UI styles:', e);
+        }
+      }
+    };
+
+    fetchTenantConfig();
+    
+    // Add custom event listener for system update pushed/applied to automatically refetch
+    const handleUpdatePushed = () => {
+      fetchTenantConfig();
+    };
+    window.addEventListener('sse_system_update_pushed', handleUpdatePushed);
+    window.addEventListener('tenant_ui_updated', handleUpdatePushed);
+    return () => {
+      window.removeEventListener('sse_system_update_pushed', handleUpdatePushed);
+      window.removeEventListener('tenant_ui_updated', handleUpdatePushed);
+    };
+  }, [currentUser]);
+
   // 2. Fetch the restaurant menu specifically isolated by tenantId
   useEffect(() => {
     const fetchMenu = async () => {

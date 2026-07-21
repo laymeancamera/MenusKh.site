@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { 
   CloudLightning, RefreshCw, Calendar, FileText, CheckCircle, 
-  ArrowRight, Plus, Trash2, Utensils, Save, AlertTriangle 
+  ArrowRight, Plus, Trash2, Utensils, Save, AlertTriangle,
+  Palette, Laptop, Layout, Megaphone
 } from 'lucide-react';
 import { SystemUpdate } from '../types.js';
+import { THEME_PRESETS } from '../theme.js';
 
 export default function SystemUpdatesManager() {
   const [loading, setLoading] = useState(true);
@@ -20,6 +22,14 @@ export default function SystemUpdatesManager() {
   const [changeLogEn, setChangeLogEn] = useState(
     'New Features in Version 3.5:\n1. Added 3 premium special dishes with dynamic customization\n2. Enhanced UI performance and layout aesthetics\n3. Improved invoice printing & dynamic KHQR codes\n4. Full Khmer localization for advanced reporting'
   );
+
+  // UI Customization States
+  const [themeId, setThemeId] = useState('amber-classic');
+  const [customTitleKh, setCustomTitleKh] = useState('ម៉ឺនុយសាបាយ');
+  const [customTitleEn, setCustomTitleEn] = useState('Sabaay Menu');
+  const [dashboardBannerUrl, setDashboardBannerUrl] = useState('https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1000&auto=format&fit=crop&q=80');
+  const [welcomeMessageKh, setWelcomeMessageKh] = useState('សូមស្វាគមន៍មកកាន់ប្រព័ន្ធគ្រប់គ្រងការបញ្ជាទិញម្ហូបអាហារ!');
+  const [welcomeMessageEn, setWelcomeMessageEn] = useState('Welcome to the smart digital restaurant system!');
 
   // Template items
   const [menuTemplate, setMenuTemplate] = useState([
@@ -74,6 +84,14 @@ export default function SystemUpdatesManager() {
           setChangeLogEn(update.changeLogEn);
           if (update.menuTemplate && update.menuTemplate.length > 0) {
             setMenuTemplate(update.menuTemplate);
+          }
+          if (update.uiConfig) {
+            setThemeId(update.uiConfig.themeId || 'amber-classic');
+            setCustomTitleKh(update.uiConfig.customTitleKh || '');
+            setCustomTitleEn(update.uiConfig.customTitleEn || '');
+            setDashboardBannerUrl(update.uiConfig.dashboardBannerUrl || '');
+            setWelcomeMessageKh(update.uiConfig.welcomeMessageKh || '');
+            setWelcomeMessageEn(update.uiConfig.welcomeMessageEn || '');
           }
         }
       }
@@ -139,7 +157,15 @@ export default function SystemUpdatesManager() {
           releaseDate,
           changeLogKh,
           changeLogEn,
-          menuTemplate
+          menuTemplate,
+          uiConfig: {
+            themeId,
+            customTitleKh,
+            customTitleEn,
+            dashboardBannerUrl,
+            welcomeMessageKh,
+            welcomeMessageEn
+          }
         })
       });
 
@@ -251,6 +277,118 @@ export default function SystemUpdatesManager() {
                   onChange={(e) => setChangeLogEn(e.target.value)}
                   placeholder="Describe the new features in English..."
                   className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-10 pr-3.5 py-2 text-xs font-sans text-slate-200 focus:outline-none focus:border-cyan-500 transition-all leading-relaxed shadow-sm"
+                />
+              </div>
+            </div>
+
+            {/* SaaS UI Theme & Branding Layout Customization Section */}
+            <div className="bg-slate-950/40 rounded-2xl p-5 border border-slate-800/60 space-y-5">
+              <div className="flex items-center gap-2 border-b border-slate-800/80 pb-3">
+                <Palette className="w-4 h-4 text-cyan-400 animate-pulse" />
+                <h4 className="text-xs font-moul text-cyan-300 leading-normal">រចនា និងកំណត់រចនាបថកម្មវិធី (Branding & Dynamic UI Layouts)</h4>
+              </div>
+
+              {/* Theme Preset Selector */}
+              <div className="space-y-2.5">
+                <label className="text-[10px] font-bold text-slate-400 block">ជ្រើសរើសស្បែកពណ៌របស់ប្រព័ន្ធ (Select System Color Theme Preset)</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  {THEME_PRESETS.map((p) => {
+                    const isSelected = themeId === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        onClick={() => setThemeId(p.id)}
+                        className={`p-3 rounded-2xl border text-left transition-all relative overflow-hidden cursor-pointer ${
+                          isSelected 
+                            ? 'border-cyan-400 bg-cyan-500/10 shadow-[0_0_15px_rgba(6,182,212,0.1)]' 
+                            : 'border-slate-800/80 bg-slate-950/40 hover:border-slate-700'
+                        }`}
+                      >
+                        {/* Little color preview dots */}
+                        <div className="flex gap-1 mb-2">
+                          <span className="w-3.5 h-3.5 rounded-full shadow-sm block" style={{ backgroundColor: p.primaryColor }} />
+                          <span className="w-3.5 h-3.5 rounded-full shadow-sm block" style={{ backgroundColor: p.bgColor }} />
+                          <span className="w-3.5 h-3.5 rounded-full shadow-sm block" style={{ backgroundColor: p.cardBg }} />
+                        </div>
+                        <p className="text-[10px] font-bold text-white leading-normal truncate">{p.nameKh.split(' (')[0]}</p>
+                        <p className="text-[8px] text-slate-400 font-sans truncate">{p.nameEn}</p>
+                        {isSelected && (
+                          <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-cyan-400 rounded-full animate-ping" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Dynamic Text fields and Banner URL */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1.5">ចំណងជើងផ្ទាំងគ្រប់គ្រង (Dashboard Title - Khmer)</label>
+                  <div className="relative">
+                    <Layout className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input 
+                      type="text" 
+                      value={customTitleKh}
+                      onChange={(e) => setCustomTitleKh(e.target.value)}
+                      placeholder="ឧ. ម៉ឺនុយសាបាយ"
+                      className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs font-bold text-white focus:outline-none focus:border-cyan-500 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1.5">ចំណងជើងផ្ទាំងគ្រប់គ្រង (Dashboard Title - English)</label>
+                  <div className="relative">
+                    <Layout className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input 
+                      type="text" 
+                      value={customTitleEn}
+                      onChange={(e) => setCustomTitleEn(e.target.value)}
+                      placeholder="e.g. Sabaay Menu"
+                      className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs font-sans font-bold text-white focus:outline-none focus:border-cyan-500 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1.5">សារស្វាគមន៍អតិថិជន (Welcome Promo - Khmer)</label>
+                  <div className="relative">
+                    <Megaphone className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input 
+                      type="text" 
+                      value={welcomeMessageKh}
+                      onChange={(e) => setWelcomeMessageKh(e.target.value)}
+                      placeholder="ឧ. ស្វាគមន៍មកកាន់ប្រព័ន្ធ..."
+                      className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-bold text-slate-400 block mb-1.5">សារស្វាគមន៍អតិថិជន (Welcome Promo - English)</label>
+                  <div className="relative">
+                    <Megaphone className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input 
+                      type="text" 
+                      value={welcomeMessageEn}
+                      onChange={(e) => setWelcomeMessageEn(e.target.value)}
+                      placeholder="e.g. Welcome to..."
+                      className="w-full bg-slate-950/80 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs font-sans text-slate-200 focus:outline-none focus:border-cyan-500 transition-all shadow-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-bold text-slate-400 block mb-1.5">រូបភាពផ្ទៃខាងក្រោយ ឬបដាផ្សព្វផ្សាយ (Dashboard Banner Image URL)</label>
+                <input 
+                  type="text" 
+                  value={dashboardBannerUrl}
+                  onChange={(e) => setDashboardBannerUrl(e.target.value)}
+                  placeholder="https://images.unsplash.com/photo-..."
+                  className="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-2 text-xs font-sans text-slate-300 focus:outline-none focus:border-cyan-500 transition-all shadow-sm"
                 />
               </div>
             </div>

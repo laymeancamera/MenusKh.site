@@ -3,9 +3,10 @@ import {
   Plus, Edit2, Trash2, Search, Filter, DollarSign, Image as ImageIcon, 
   Check, X, LogOut, Utensils, TrendingUp, Sparkles, Database, 
   AlertTriangle, Grid, ToggleLeft, ToggleRight, CheckCircle, HelpCircle,
-  Upload, Loader2, CloudLightning, Calendar, ArrowRight
+  Upload, Loader2, CloudLightning, Calendar, ArrowRight, Palette, Layers
 } from 'lucide-react';
 import { MenuItem, User } from '../types.js';
+import { THEME_PRESETS } from '../theme.js';
 
 interface AdminDashboardProps {
   currentUser: User;
@@ -1000,6 +1001,70 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
                     </div>
                   </div>
 
+                  {/* Pushed UI Customization Layout Preview */}
+                  {updateInfo.latestUpdate?.uiConfig && (
+                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 space-y-3">
+                      <div className="flex items-center gap-2 border-b border-slate-200 pb-2">
+                        <Palette className="w-4 h-4 text-orange-600 animate-pulse" />
+                        <h4 className="text-xs font-bold text-slate-700 text-left">🎨 រចនាបថ និងស្បែកកម្មវិធីថ្មី (Dynamic UI & Branding Layout)</h4>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                        <div className="bg-white border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+                          <div 
+                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm"
+                            style={{ 
+                              backgroundColor: THEME_PRESETS.find(p => p.id === updateInfo.latestUpdate?.uiConfig?.themeId)?.primaryColor || '#f97316' 
+                            }}
+                          >
+                            🎨
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] text-slate-400 font-bold block leading-normal uppercase">ស្បែកពណ៌ថ្មី (New Theme)</span>
+                            <span className="text-[11px] font-bold text-slate-700 leading-normal truncate block">
+                              {THEME_PRESETS.find(p => p.id === updateInfo.latestUpdate?.uiConfig?.themeId)?.nameKh.split(' (')[0] || 'Default'}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="bg-white border border-slate-100 rounded-xl p-3 flex items-center gap-3">
+                          <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center shrink-0">
+                            <Layers className="w-5 h-5" />
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] text-slate-400 font-bold block leading-normal uppercase">ចំណងជើងថ្មី (Branded Title)</span>
+                            <span className="text-[11px] font-bold text-slate-700 leading-normal truncate block">
+                              {updateInfo.latestUpdate?.uiConfig?.customTitleKh || 'Default'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {updateInfo.latestUpdate?.uiConfig?.welcomeMessageKh && (
+                        <div className="bg-orange-50/40 rounded-xl p-3 text-left border border-orange-100/30">
+                          <span className="text-[9px] font-bold text-orange-600 block uppercase mb-0.5">សារផ្សព្វផ្សាយថ្មី (Announcements)</span>
+                          <p className="text-[11px] text-slate-600 leading-relaxed font-medium font-koh">
+                            "{updateInfo.latestUpdate.uiConfig.welcomeMessageKh}"
+                          </p>
+                        </div>
+                      )}
+
+                      {updateInfo.latestUpdate?.uiConfig?.dashboardBannerUrl && (
+                        <div className="relative rounded-xl overflow-hidden h-16 border border-slate-100">
+                          <img 
+                            src={updateInfo.latestUpdate.uiConfig.dashboardBannerUrl} 
+                            alt="Banner" 
+                            className="w-full h-full object-cover brightness-75"
+                            referrerPolicy="no-referrer"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/60 to-transparent flex items-center px-4">
+                            <span className="text-[10px] text-white font-black drop-shadow font-sans uppercase tracking-wider">Banner background preview</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Included Menu Templates */}
                   {updateInfo.latestUpdate?.menuTemplate && updateInfo.latestUpdate.menuTemplate.length > 0 && (
                     <div className="space-y-2">
@@ -1064,6 +1129,9 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
                                 const newMenu = await menuRes.json();
                                 onMenuUpdated(newMenu);
                               }
+
+                              // Dispatch event to trigger instant theme & logo layout reload!
+                              window.dispatchEvent(new CustomEvent('tenant_ui_updated'));
                             } else {
                               const err = await res.json();
                               alert(err.error || 'ការអាប់ដេតបានបរាជ័យ');

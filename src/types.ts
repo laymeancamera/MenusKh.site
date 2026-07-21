@@ -9,6 +9,15 @@ export interface User {
   tenantId?: string; // Links users to their specific restaurant
 }
 
+export interface UIThemeConfig {
+  themeId: string;
+  customTitleKh?: string;
+  customTitleEn?: string;
+  dashboardBannerUrl?: string;
+  welcomeMessageKh?: string;
+  welcomeMessageEn?: string;
+}
+
 export interface Tenant {
   id: string;
   name: string;
@@ -26,6 +35,7 @@ export interface Tenant {
   chefPassword?: string;
   logoUrl?: string;
   version?: string;
+  uiConfig?: UIThemeConfig;
 }
 
 export interface SystemUpdate {
@@ -42,6 +52,7 @@ export interface SystemUpdate {
     descriptionEn: string;
     imageUrl: string;
   }[];
+  uiConfig?: UIThemeConfig;
 }
 
 export interface MenuItem {
