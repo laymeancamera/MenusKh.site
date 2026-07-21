@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://menuskh.ai.studio/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://menuskh.ai.studio/uploads/:path*"
+    },
+    {
+      "source": "/:path*",
+      "destination": "/index.html"
+    }
+  ]
+}
