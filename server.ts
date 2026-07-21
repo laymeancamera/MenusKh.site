@@ -9,6 +9,18 @@ const app = express();
 const PORT = 3000;
 const DB_FILE = path.join(process.cwd(), 'db_data.json');
 
+// Redirect HTTP to HTTPS for secure custom domains to prevent POST-to-GET redirect issues on API requests
+app.use((req, res, next) => {
+  if (
+    req.headers['x-forwarded-proto'] === 'http' &&
+    !req.hostname.includes('localhost') &&
+    !req.hostname.includes('127.0.0.1')
+  ) {
+    return res.redirect(301, `https://${req.headers.host}${req.url}`);
+  }
+  next();
+});
+
 // In-memory fallbacks
 let database = {
   users: [
