@@ -7,6 +7,7 @@ import AdminDashboard from './components/AdminDashboard.js';
 import OwnerDashboard from './components/OwnerDashboard.js';
 import { THEME_PRESETS, generateThemeCSS, CustomTheme } from './theme.js';
 import ThemeCustomizer from './components/ThemeCustomizer.js';
+import InstallPwaPrompt from './components/InstallPwaPrompt.js';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -203,6 +204,9 @@ export default function App() {
 
       {/* Floating Interactive Theme Selector Trigger */}
       <ThemeCustomizer currentTheme={theme} onThemeChange={handleThemeChange} />
+
+      {/* PWA Add to Home Screen Prompt */}
+      <InstallPwaPrompt />
     </div>
   );
 }

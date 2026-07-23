@@ -1,0 +1,24 @@
+{
+  "short_name": "MenusKh",
+  "name": "MenusKh-មុីនុយ ខ្មែរ",
+  "description": "ប្រព័ន្ធកុម្ម៉ង់អាហារ គ្រប់គ្រងចុងភៅ និងសិទ្ធិអាជីវកម្ម MenusKh",
+  "icons": [
+    {
+      "src": "/pwa-icon.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192 512x512",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/apple-touch-icon.jpg",
+      "type": "image/jpeg",
+      "sizes": "180x180"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#0f172a",
+  "theme_color": "#ea580c",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/"
+}

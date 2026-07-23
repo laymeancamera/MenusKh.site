@@ -46,7 +46,7 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
     loginLogoUrl: '',
     loginBgType: 'default', // 'default' | 'image' | 'video'
     loginBgUrl: '',
-    titleKh: 'ម៉ឺនុយខ្មែរ (Menus KH)',
+    titleKh: 'MenusKh-មុីនុយ ខ្មែរ',
     descKh: 'ប្រព័ន្ធគ្រប់គ្រងម៉ឺនុយ និងការកុម្ម៉ង់អាហារក្នុងហាងបែបទំនើប'
   });
 
