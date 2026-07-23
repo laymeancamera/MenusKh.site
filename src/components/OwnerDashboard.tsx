@@ -40,7 +40,6 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { User as UserType, Tenant } from '../types.js';
-import SystemUpdatesManager from './SystemUpdatesManager.js';
 
 interface OwnerDashboardProps {
   currentUser: UserType;
@@ -56,7 +55,7 @@ export default function OwnerDashboard({ currentUser, onLogout }: OwnerDashboard
   const [successMsg, setSuccessMsg] = useState('');
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'platforms' | 'login_config' | 'system_updates'>('platforms');
+  const [activeTab, setActiveTab] = useState<'platforms' | 'login_config'>('platforms');
 
   // Form State for creating a new tenant
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -595,17 +594,6 @@ export default function OwnerDashboard({ currentUser, onLogout }: OwnerDashboard
                 <Settings className="w-3.5 h-3.5 shrink-0" />
                 <span className="truncate">កំណត់ផ្ទាំង Login</span>
               </button>
-              <button
-                onClick={() => setActiveTab('system_updates')}
-                className={`flex-1 md:flex-initial px-4 py-2 rounded-lg text-xs font-koh font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  activeTab === 'system_updates' 
-                    ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-slate-950 shadow-[0_0_15px_rgba(6,182,212,0.25)] font-extrabold' 
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
-                }`}
-              >
-                <CloudLightning className="w-3.5 h-3.5 shrink-0" />
-                <span className="truncate">គ្រប់គ្រងការ Update</span>
-              </button>
             </div>
 
             <button
@@ -633,7 +621,7 @@ export default function OwnerDashboard({ currentUser, onLogout }: OwnerDashboard
       </header>
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6 z-10 print:hidden">
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 pb-28 sm:pb-8 space-y-6 z-10 print:hidden">
         
         {/* Messages */}
         {successMsg && (
@@ -1527,11 +1515,200 @@ export default function OwnerDashboard({ currentUser, onLogout }: OwnerDashboard
           </div>
         )}
 
-        {activeTab === 'system_updates' && (
-          <SystemUpdatesManager />
-        )}
-
       </main>
+
+      {/* MOBILE APP BOTTOM NAVIGATION BAR (FIXED DOCK FOR SMARTPHONES) */}
+      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/80 p-1.5 pb-safe shadow-[0_-4px_25px_rgba(0,0,0,0.6)] flex justify-around items-center print:hidden">
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('platforms');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'platforms'
+              ? 'text-cyan-400 font-extrabold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Server className="w-5 h-5" />
+          <span className="text-[9px] font-koh">ហាងដៃគូ</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsFormOpen(true)}
+          className="flex flex-col items-center justify-center -mt-5 bg-gradient-to-tr from-cyan-500 via-teal-400 to-emerald-500 text-slate-950 p-3.5 rounded-full shadow-[0_0_20px_rgba(6,182,212,0.4)] border-2 border-slate-950 active:scale-95 transition-transform cursor-pointer"
+        >
+          <Plus className="w-6 h-6 stroke-[3]" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setActiveTab('login_config');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          className={`flex flex-col items-center gap-1 py-1 px-3 rounded-xl transition-all cursor-pointer ${
+            activeTab === 'login_config'
+              ? 'text-cyan-400 font-extrabold'
+              : 'text-slate-400 hover:text-slate-200'
+          }`}
+        >
+          <Settings className="w-5 h-5" />
+          <span className="text-[9px] font-koh">កំណត់ Login</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={onLogout}
+          className="flex flex-col items-center gap-1 py-1 px-3 rounded-xl text-rose-400/80 hover:text-rose-400 transition-all cursor-pointer"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="text-[9px] font-koh">ចាកចេញ</span>
+        </button>
+      </nav>
+
+      {/* MOBILE POPUP / BOTTOM SHEET MODAL FOR CREATING TENANT */}
+      {isFormOpen && (
+        <div className="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto animate-fade-in print:hidden">
+          <div className="bg-[#0c1024] border border-cyan-500/20 rounded-t-3xl sm:rounded-3xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-5 md:p-6 shadow-2xl relative space-y-4 text-slate-100 font-koh">
+            
+            {/* Drag Handle for Mobile feel */}
+            <div className="w-12 h-1.5 bg-slate-700/80 rounded-full mx-auto sm:hidden" />
+
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <Plus className="w-5 h-5 text-cyan-400" />
+                <h2 className="text-sm font-moul text-slate-100">បង្កើតប្រព័ន្ធហាងដៃគូថ្មី (SaaS Deploy)</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(false)}
+                className="w-7 h-7 rounded-full bg-slate-800 text-slate-400 hover:text-slate-100 flex items-center justify-center font-bold text-xs cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={(e) => {
+              handleCreateTenant(e);
+              setIsFormOpen(false);
+            }} className="space-y-4 text-xs font-koh">
+              {/* Restaurant Info */}
+              <div className="space-y-3 bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80">
+                <h3 className="text-[10px] font-koh font-black text-cyan-400 uppercase tracking-widest leading-normal flex items-center gap-1.5">
+                  <Activity className="w-3.5 h-3.5 text-cyan-400" />
+                  ១. ព័ត៌មានអាជីវកម្ម (Core Parameters)
+                </h3>
+                
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400">ឈ្មោះហាង (Restaurant Name) *</label>
+                  <input
+                    type="text"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-xs font-bold text-slate-100 placeholder-slate-600"
+                    placeholder="ឧ. ហាង មុឺនុយខ្មែរទំនើប"
+                    value={restaurantName}
+                    onChange={(e) => setRestaurantName(e.target.value)}
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold text-slate-400">ឈ្មោះម្ចាស់ហាង (Buyer / Owner Name) *</label>
+                  <input
+                    type="text"
+                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-2 px-3 focus:outline-none focus:ring-1 focus:ring-cyan-500 text-xs font-bold text-slate-100 placeholder-slate-600"
+                    placeholder="ឧ. លោក ឈាន សម្បត្តិ"
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {/* Partner Logo Upload */}
+                <div className="space-y-1 mt-2">
+                  <label className="text-[10px] font-bold text-slate-400">ឡូហ្គោដៃគូអាជីវកម្ម (Partner Logo)</label>
+                  <div className="flex items-center gap-3 mt-1">
+                    <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-800/80 flex items-center justify-center overflow-hidden shrink-0">
+                      {logoUrl ? (
+                        <img src={logoUrl} alt="Logo preview" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      ) : (
+                        <ImageIcon className="w-5 h-5 text-cyan-400/30" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <button
+                        type="button"
+                        onClick={() => logoFileInputRef.current?.click()}
+                        disabled={uploadLoading}
+                        className="w-full border border-dashed border-slate-800 hover:border-cyan-500 bg-slate-900 text-cyan-400 rounded-xl py-2 px-3 font-bold text-[10px] flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        {uploadLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        {uploadLoading ? 'កំពុងអាប់ឡូត...' : 'ជ្រើសរើសរូបភាពឡូហ្គោ'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Provision Credentials */}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={handleGenerateCredentials}
+                  className="w-full bg-slate-950 hover:bg-slate-900 text-cyan-400 border border-slate-800 rounded-xl py-2.5 px-3 font-bold text-[10px] flex items-center justify-center gap-1.5 cursor-pointer"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  បង្កើតគណនីស្វ័យប្រវត្តិ (Generate Credentials)
+                </button>
+              </div>
+
+              <div className="space-y-3 bg-slate-950/80 p-4 rounded-2xl border border-slate-800/80">
+                <h3 className="text-[10px] font-koh font-black text-cyan-400 uppercase tracking-widest">២. គណនីទាំង ៣ (Credentials)</h3>
+                
+                {/* Account 1: Owner */}
+                <div className="space-y-1.5 border-b border-slate-800/60 pb-2.5">
+                  <span className="text-[10px] font-bold text-cyan-400 block">គណនីម្ចាស់ហាង (Admin)</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="text" className="bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100" placeholder="ឈ្មោះ" value={adminName} onChange={(e) => setAdminName(e.target.value)} required />
+                    <input type="text" className="bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100 font-mono" placeholder="គណនី" value={adminPhone} onChange={(e) => setAdminPhone(e.target.value)} required />
+                  </div>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100 font-mono" placeholder="លេខសម្ងាត់" value={adminPassword} onChange={(e) => setAdminPassword(e.target.value)} required />
+                </div>
+
+                {/* Account 2: Waiter */}
+                <div className="space-y-1.5 border-b border-slate-800/60 pb-2.5">
+                  <span className="text-[10px] font-bold text-yellow-500 block">គណនីអ្នករត់តុ (Waiter)</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="text" className="bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100" placeholder="ឈ្មោះ" value={waiterName} onChange={(e) => setWaiterName(e.target.value)} required />
+                    <input type="text" className="bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100 font-mono" placeholder="គណនី" value={waiterPhone} onChange={(e) => setWaiterPhone(e.target.value)} required />
+                  </div>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100 font-mono" placeholder="លេខសម្ងាត់" value={waiterPassword} onChange={(e) => setWaiterPassword(e.target.value)} required />
+                </div>
+
+                {/* Account 3: Chef */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-purple-400 block">គណនីចុងភៅ (Kitchen Chef)</span>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="text" className="bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100" placeholder="ឈ្មោះ" value={chefName} onChange={(e) => setChefName(e.target.value)} required />
+                    <input type="text" className="bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100 font-mono" placeholder="គណនី" value={chefPhone} onChange={(e) => setChefPhone(e.target.value)} required />
+                  </div>
+                  <input type="text" className="w-full bg-slate-900 border border-slate-800 rounded-xl py-1.5 px-2 text-[10px] text-slate-100 font-mono" placeholder="លេខសម្ងាត់" value={chefPassword} onChange={(e) => setChefPassword(e.target.value)} required />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-600 text-slate-950 font-moul rounded-2xl py-3.5 shadow-lg flex items-center justify-center gap-2 cursor-pointer text-[11px] font-extrabold"
+              >
+                <ShieldCheck className="w-4 h-4 text-slate-950" />
+                អនុម័ត និងផ្ទេរសិទ្ធិប្រព័ន្ធ (Deploy System Core)
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* INVOICE & CREDENTIALS MODAL */}
       {selectedInvoiceTenant && (

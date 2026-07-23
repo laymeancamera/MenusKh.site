@@ -3,13 +3,14 @@ import {
   Plus, Edit2, Trash2, Search, Filter, DollarSign, Image as ImageIcon, 
   Check, X, LogOut, Utensils, TrendingUp, Sparkles, Database, 
   AlertTriangle, Grid, ToggleLeft, ToggleRight, CheckCircle, HelpCircle,
-  Upload, Loader2, CloudLightning, Calendar, ArrowRight, Palette, Layers
+  Upload, Loader2, Calendar, ArrowRight, Palette, Layers, CheckSquare,
+  BarChart3, Clock, FileText, User, RefreshCw, Send, PieChart
 } from 'lucide-react';
-import { MenuItem, User } from '../types.js';
+import { MenuItem, User as UserType, Order } from '../types.js';
 import { THEME_PRESETS } from '../theme.js';
 
 interface AdminDashboardProps {
-  currentUser: User;
+  currentUser: UserType;
   onLogout: () => void;
   menuItems: MenuItem[];
   onMenuUpdated: (menu: MenuItem[]) => void;
@@ -38,38 +39,59 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
   // Navigation & Filtering
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'revenue' | 'menu' | 'waiter_reports'>('revenue');
 
-  // System Update States
-  const [updateInfo, setUpdateInfo] = useState<any>(null);
-  const [showUpdateModal, setShowUpdateModal] = useState(false);
-  const [applyingUpdate, setApplyingUpdate] = useState(false);
-  const [updateSuccess, setUpdateSuccess] = useState(false);
+  // Real-time Orders & Waiter Reports for Revenue Calculations
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [waiterReports, setWaiterReports] = useState<any[]>([]);
+  const [isRefreshingData, setIsRefreshingData] = useState(false);
 
-  const fetchUpdateStatus = async () => {
+  const fetchAdminData = async () => {
     try {
-      if (currentUser?.tenantId) {
-        const res = await fetch(`/api/system/update/check?tenantId=${currentUser.tenantId}`);
-        if (res.ok) {
-          const data = await res.json();
-          setUpdateInfo(data);
-        }
+      setIsRefreshingData(true);
+      const tenantId = currentUser?.tenantId || 't-default';
+      const [ordRes, repRes] = await Promise.all([
+        fetch(`/api/orders?role=chef&tenantId=${tenantId}`),
+        fetch(`/api/reports/waiter-shift?tenantId=${tenantId}`)
+      ]);
+
+      if (ordRes.ok) {
+        const ordData = await ordRes.json();
+        setOrders(ordData);
+      }
+      if (repRes.ok) {
+        const repData = await repRes.json();
+        setWaiterReports(repData);
       }
     } catch (e) {
-      console.error('Failed to fetch system update info:', e);
+      console.error('Failed to load admin orders/reports:', e);
+    } finally {
+      setIsRefreshingData(false);
     }
   };
 
   useEffect(() => {
-    fetchUpdateStatus();
+    fetchAdminData();
 
-    // Listen to real-time update notifications from parent SSE or custom events
-    const handleUpdatePushed = () => {
-      fetchUpdateStatus();
-    };
+    // Set interval polling
+    const interval = setInterval(fetchAdminData, 4000);
 
-    window.addEventListener('sse_system_update_pushed', handleUpdatePushed);
+    // Set SSE Listener for live orders and waiter shift report submissions
+    const sse = new EventSource('/api/orders/stream');
+    
+    sse.addEventListener('waiter_report_submitted', (e) => {
+      const newReport = JSON.parse(e.data);
+      if (newReport.tenantId === (currentUser?.tenantId || 't-default')) {
+        setWaiterReports(prev => [newReport, ...prev]);
+      }
+    });
+
+    sse.addEventListener('order_created', () => fetchAdminData());
+    sse.addEventListener('order_updated', () => fetchAdminData());
+
     return () => {
-      window.removeEventListener('sse_system_update_pushed', handleUpdatePushed);
+      clearInterval(interval);
+      sse.close();
     };
   }, [currentUser]);
 
@@ -332,6 +354,72 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
     return { total, available, soldOut, averagePrice };
   }, [menuItems]);
 
+  // Automatic Revenue Calculations (Daily & Monthly)
+  const revenueStats = useMemo(() => {
+    const now = new Date();
+    const todayStr = now.toDateString();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    // Today's valid non-cancelled orders
+    const todayOrders = orders.filter(o => {
+      const d = new Date(o.createdAt);
+      return d.toDateString() === todayStr && o.status !== 'cancelled';
+    });
+
+    const todayRevenueUsd = todayOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const todayRevenueKhr = Math.round(todayRevenueUsd * 4100);
+    const todayDishesSold = todayOrders.reduce((sum, o) => {
+      return sum + (o.items || []).reduce((iSum: number, item: any) => iSum + (item.quantity || 1), 0);
+    }, 0);
+
+    const todayKhqrRevenueUsd = todayOrders.filter(o => o.paymentMethod === 'khqr').reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const todayCashRevenueUsd = todayOrders.filter(o => o.paymentMethod === 'cash').reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+
+    // This Month's valid non-cancelled orders
+    const monthOrders = orders.filter(o => {
+      const d = new Date(o.createdAt);
+      return d.getMonth() === currentMonth && d.getFullYear() === currentYear && o.status !== 'cancelled';
+    });
+
+    const monthRevenueUsd = monthOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+    const monthRevenueKhr = Math.round(monthRevenueUsd * 4100);
+    const monthDishesSold = monthOrders.reduce((sum, o) => {
+      return sum + (o.items || []).reduce((iSum: number, item: any) => iSum + (item.quantity || 1), 0);
+    }, 0);
+
+    // Top selling items calculation
+    const itemMap: Record<string, { nameKh: string; quantity: number; revenue: number }> = {};
+    orders.forEach(o => {
+      if (o.status === 'cancelled') return;
+      (o.items || []).forEach((item: any) => {
+        const id = item.id || item.nameKh;
+        if (!itemMap[id]) {
+          itemMap[id] = { nameKh: item.nameKh, quantity: 0, revenue: 0 };
+        }
+        const q = item.quantity || 1;
+        itemMap[id].quantity += q;
+        itemMap[id].revenue += (item.price || 0) * q;
+      });
+    });
+
+    const topSellingItems = Object.values(itemMap).sort((a, b) => b.quantity - a.quantity).slice(0, 5);
+
+    return {
+      todayOrdersCount: todayOrders.length,
+      todayRevenueUsd,
+      todayRevenueKhr,
+      todayDishesSold,
+      todayKhqrRevenueUsd,
+      todayCashRevenueUsd,
+      monthOrdersCount: monthOrders.length,
+      monthRevenueUsd,
+      monthRevenueKhr,
+      monthDishesSold,
+      topSellingItems
+    };
+  }, [orders]);
+
   return (
     <div className="min-h-screen bg-orange-50/50 text-slate-800 font-sans flex flex-col">
       {/* Admin Header */}
@@ -351,30 +439,65 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => setShowUpdateModal(true)}
-            className="relative p-2.5 rounded-xl bg-orange-50 hover:bg-orange-100 border border-orange-150 text-orange-600 transition-all cursor-pointer flex items-center justify-center"
-            title="ប្រព័ន្ធអាប់ដេត (Update Center)"
-          >
-            <CloudLightning className="w-4.5 h-4.5" />
-            {updateInfo?.updateAvailable && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white animate-ping" />
-            )}
-            {updateInfo?.updateAvailable && (
-              <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border border-white" />
-            )}
-          </button>
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          {/* Navigation Tabs */}
+          <div className="flex bg-orange-100 p-1 border border-orange-200 rounded-xl">
+            <button
+              type="button"
+              id="admin-tab-revenue"
+              onClick={() => setActiveTab('revenue')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'revenue'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <BarChart3 className="w-3.5 h-3.5" />
+              <span>គណនាចំណូលស្វ័យប្រវត្តិ</span>
+            </button>
+
+            <button
+              type="button"
+              id="admin-tab-menu"
+              onClick={() => setActiveTab('menu')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'menu'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Utensils className="w-3.5 h-3.5" />
+              <span>គ្រប់គ្រងមុខម្ហូប ({stats.total})</span>
+            </button>
+
+            <button
+              type="button"
+              id="admin-tab-reports"
+              onClick={() => setActiveTab('waiter_reports')}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer relative ${
+                activeTab === 'waiter_reports'
+                  ? 'bg-orange-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>របាយការណ៍រត់តុ</span>
+              {waiterReports.length > 0 && (
+                <span className="bg-rose-500 text-white text-[9px] px-1.5 rounded-full font-bold">
+                  {waiterReports.length}
+                </span>
+              )}
+            </button>
+          </div>
 
           <button
             type="button"
             id="admin-btn-add"
             onClick={handleOpenAdd}
-            className="bg-orange-600 hover:bg-orange-700 active:scale-95 text-white font-bold text-xs py-2.5 px-4 rounded-xl shadow-md flex items-center gap-1.5 transition-all cursor-pointer"
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-3 rounded-xl shadow-xs flex items-center gap-1 transition-all cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            បន្ថែមម្ហូបថ្មី (Add Dish)
+            <span>បន្ថែមម្ហូប</span>
           </button>
 
           <button
@@ -402,239 +525,377 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
       {/* Main Body */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-4 md:p-6 space-y-6">
 
-        {updateInfo?.updateAvailable && (
-          <div className="bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 rounded-3xl p-5 text-white flex flex-col md:flex-row items-center justify-between gap-4 shadow-lg animate-fade-in relative overflow-hidden border border-orange-400/25">
-            <div className="absolute top-[-20%] left-[-10%] w-[35%] h-[150%] bg-white/5 skew-x-12 -translate-x-full animate-[shimmer_6s_infinite] pointer-events-none" />
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/10 text-white rounded-2xl border border-white/20 shrink-0 shadow-inner flex items-center justify-center">
-                <CloudLightning className="w-6 h-6 animate-bounce" />
-              </div>
+        {/* TAB 1: AUTOMATIC REVENUE CALCULATOR */}
+        {activeTab === 'revenue' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Header banner */}
+            <div className="bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 rounded-3xl p-6 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
               <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h4 className="text-xs md:text-sm font-moul leading-normal text-white">ប្រព័ន្ធថ្មីជំនាន់ Version {updateInfo.latestUpdate?.latestVersion} ត្រូវបានបញ្ចេញរួចរាល់!</h4>
-                  <span className="text-[9px] bg-white text-orange-700 font-extrabold px-2.5 py-0.5 rounded-full border border-orange-200 uppercase font-sans animate-pulse">Update available</span>
+                <div className="flex items-center gap-2">
+                  <BarChart3 className="w-6 h-6 text-white animate-bounce" />
+                  <h2 className="text-base font-black">ប្រព័ន្ធគណនាចំណូលប្រចាំថ្ងៃ និងប្រចាំខែដោយស្វ័យប្រវត្តិ</h2>
                 </div>
-                <p className="text-[10px] text-orange-50/90 font-medium font-koh mt-1 leading-relaxed">
-                  ម្ចាស់កម្មសិទ្ធិ (System Owner) បានបញ្ចេញមុខងារថ្មីៗ និងបន្ថែមគំរូបញ្ជីមុខម្ហូបពិសេសចំនួន {updateInfo.latestUpdate?.menuTemplate?.length || 0} មុខ។ ចុចប៊ូតុងខាងស្តាំដើម្បីទាញយកទិន្នន័យថ្មីមកហាងរបស់អ្នកភ្លាមៗ!
+                <p className="text-xs text-orange-100 font-medium mt-1">
+                  គណនាលុយកាក់ ចំនួនកុម្ម៉ង់ និងចំនួនចានដែលបានលក់សរុបចេញពី Real-time Server SSE ភ្លាមៗ
                 </p>
               </div>
-            </div>
-            <button
-              onClick={() => setShowUpdateModal(true)}
-              className="bg-white hover:bg-orange-50 text-orange-700 font-bold font-koh text-xs py-2.5 px-5 rounded-xl shadow-md transition-all active:scale-95 shrink-0 whitespace-nowrap cursor-pointer hover:shadow-lg border border-orange-100"
-            >
-              ទាញយក និងតម្លើង (Get Update)
-            </button>
-          </div>
-        )}
-        
-        {/* Statistics Panels (Bento style) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-white border border-orange-100 p-4 rounded-2xl flex items-center gap-4 shadow-xs">
-            <div className="p-3 bg-orange-50 text-orange-600 rounded-xl border border-orange-100">
-              <Database className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">មុខម្ហូបសរុប (Total Items)</span>
-              <span className="text-xl font-black font-mono text-slate-800">{stats.total} មុខ</span>
-            </div>
-          </div>
-
-          <div className="bg-white border border-orange-100 p-4 rounded-2xl flex items-center gap-4 shadow-xs">
-            <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
-              <Sparkles className="w-5 h-5 animate-bounce" style={{ animationDuration: '4s' }} />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">កំពុងលក់ធម្មតា (In Stock)</span>
-              <span className="text-xl font-black font-mono text-emerald-600">{stats.available} មុខ</span>
-            </div>
-          </div>
-
-          <div className="bg-white border border-orange-100 p-4 rounded-2xl flex items-center gap-4 shadow-xs">
-            <div className="p-3 bg-rose-50 text-rose-500 rounded-xl border border-rose-100">
-              <AlertTriangle className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">លក់អស់បណ្តោះអាសន្ន</span>
-              <span className="text-xl font-black font-mono text-rose-600">{stats.soldOut} មុខ</span>
-            </div>
-          </div>
-
-          <div className="bg-white border border-orange-100 p-4 rounded-2xl flex items-center gap-4 shadow-xs">
-            <div className="p-3 bg-amber-50 text-amber-500 rounded-xl border border-amber-100">
-              <TrendingUp className="w-5 h-5" />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">តម្លៃមធ្យម (Avg Price)</span>
-              <span className="text-xl font-black font-mono text-amber-600">${stats.averagePrice.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Filter and Search controls */}
-        <div className="bg-white border border-orange-100 p-4 rounded-3xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-xs">
-          {/* Search */}
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              id="admin-search-menu"
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/50 transition-all"
-              placeholder="ស្វែងរកម្ហូប ឬភេសជ្ជៈ... (Search menu...)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            {searchQuery && (
-              <button 
-                type="button" 
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 rounded-full hover:bg-slate-200 text-slate-400"
+              <button
+                type="button"
+                onClick={fetchAdminData}
+                disabled={isRefreshingData}
+                className="px-4 py-2 bg-white text-orange-600 hover:bg-orange-50 rounded-xl text-xs font-bold flex items-center gap-2 cursor-pointer shadow-sm transition-all"
               >
-                <X className="w-3.5 h-3.5" />
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingData ? 'animate-spin' : ''}`} />
+                <span>ធ្វើបច្ចុប្បន្នភាពទិន្នន័យ (Refresh)</span>
               </button>
-            )}
-          </div>
+            </div>
 
-          {/* Categories Horizontal */}
-          <div className="flex gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-            <button
-              type="button"
-              id="admin-cat-all"
-              className={`px-4 py-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
-                selectedCategory === 'all'
-                  ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-xs'
-                  : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-              }`}
-              onClick={() => setSelectedCategory('all')}
-            >
-              ទាំងអស់ ({stats.total})
-            </button>
-            {(Object.keys(CATEGORY_MAP) as Array<keyof typeof CATEGORY_MAP>).map(cat => {
-              const count = menuItems.filter(m => m.category === cat).length;
-              return (
-                <button
-                  key={cat}
-                  type="button"
-                  id={`admin-cat-${cat}`}
-                  className={`px-4 py-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer whitespace-nowrap ${
-                    selectedCategory === cat
-                      ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-xs'
-                      : 'bg-white border-slate-200 text-slate-500 hover:bg-slate-50'
-                  }`}
-                  onClick={() => setSelectedCategory(cat)}
-                >
-                  {CATEGORY_MAP[cat].kh} ({count})
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Menu Items Grid */}
-        {filteredItems.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredItems.map(item => (
-              <div 
-                key={item.id} 
-                className={`bg-white border rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group relative ${
-                  !item.isAvailable ? 'border-rose-100 opacity-90' : 'border-orange-100/75'
-                }`}
-              >
-                {/* Image Section */}
-                <div className="h-44 relative bg-slate-100 overflow-hidden shrink-0">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.nameEn}
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-cover group-hover:scale-105 transition-all duration-500"
-                  />
-                  {/* Category Badge on Top-Left */}
-                  <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-xl text-[9px] font-extrabold border ${CATEGORY_MAP[item.category]?.color || 'bg-slate-100'}`}>
-                    {item.categoryKh}
-                  </span>
-
-                  {/* Availability Badge on Top-Right */}
-                  <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-xl text-[9px] font-black tracking-wide border shadow-sm ${
-                    item.isAvailable 
-                      ? 'bg-emerald-500 text-white border-emerald-600' 
-                      : 'bg-rose-500 text-white border-rose-600'
-                  }`}>
-                    {item.isAvailable ? 'មានលក់ (In Stock)' : 'អស់លក់ (Sold Out)'}
-                  </span>
+            {/* Daily & Monthly Automatic Summary Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Daily Revenue Box */}
+              <div className="bg-white border-2 border-emerald-500/30 rounded-3xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-2xl uppercase">
+                  ប្រចាំថ្ងៃ (Daily)
                 </div>
-
-                {/* Body Content */}
-                <div className="p-5 flex-1 flex flex-col justify-between">
-                  <div>
-                    <div className="flex justify-between items-start gap-2 mb-1">
-                      <h3 className="text-base font-bold text-slate-800 line-clamp-1">{item.nameKh}</h3>
-                      <span className="text-lg font-black font-mono text-orange-600 shrink-0">${item.price.toFixed(2)}</span>
+                
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-emerald-50 text-emerald-600 rounded-2xl border border-emerald-100">
+                      <DollarSign className="w-6 h-6" />
                     </div>
-                    <h4 className="text-xs text-slate-400 font-semibold mb-3">{item.nameEn}</h4>
-                    
-                    <p className="text-[11px] text-slate-500 leading-relaxed font-medium line-clamp-2 mb-4 bg-slate-50 p-2.5 rounded-xl border border-slate-100 min-h-[46px]">
-                      {item.descriptionKh || <span className="italic text-slate-300">គ្មានការពិពណ៌នាជាភាសាខ្មែរឡើយ។</span>}
-                    </p>
+                    <div>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">ចំណូលប្រចាំថ្ងៃនេះ (Today's Revenue)</span>
+                      <h3 className="text-2xl md:text-3xl font-black text-emerald-600 font-mono">
+                        ${revenueStats.todayRevenueUsd.toFixed(2)}
+                      </h3>
+                      <p className="text-xs font-bold text-slate-500 mt-0.5">
+                        ~ ៛{revenueStats.todayRevenueKhr.toLocaleString()} រៀល
+                      </p>
+                    </div>
                   </div>
 
-                  {/* Card Footer Actions */}
-                  <div className="border-t border-slate-100 pt-3.5 flex justify-between items-center gap-2 mt-auto">
-                    {/* Switch Toggle */}
-                    <button
-                      type="button"
-                      id={`toggle-avail-${item.id}`}
-                      onClick={() => toggleItemAvailability(item)}
-                      className="flex items-center gap-1 hover:text-slate-900 transition-all cursor-pointer"
-                      title={item.isAvailable ? 'ប្តូរជាលក់អស់ (Mark Sold Out)' : 'ប្តូរជាមានលក់ (Mark In Stock)'}
-                    >
-                      {item.isAvailable ? (
-                        <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-emerald-600">
-                          <ToggleRight className="w-5.5 h-5.5" />
-                          <span>លក់ធម្មតា</span>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-rose-500">
-                          <ToggleLeft className="w-5.5 h-5.5" />
-                          <span>លក់អស់</span>
-                        </div>
-                      )}
-                    </button>
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <span className="text-[10px] font-bold text-slate-400 block">កុម្ម៉ង់សរុបថ្ងៃនេះ</span>
+                      <span className="text-lg font-black font-mono text-slate-800">{revenueStats.todayOrdersCount} លើក</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <span className="text-[10px] font-bold text-slate-400 block">ចំនួនចាន/កែវលក់បាន</span>
+                      <span className="text-lg font-black font-mono text-amber-600">{revenueStats.todayDishesSold} ចាន</span>
+                    </div>
+                  </div>
 
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        id={`edit-item-${item.id}`}
-                        onClick={() => handleOpenEdit(item)}
-                        className="p-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition-all cursor-pointer"
-                        title="កែសម្រួល (Edit)"
-                      >
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        id={`delete-item-${item.id}`}
-                        onClick={() => setDeleteId(item.id)}
-                        className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-all cursor-pointer"
-                        title="លុបចោល (Delete)"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                  <div className="bg-emerald-50/60 p-3.5 rounded-2xl border border-emerald-100/80 flex justify-between items-center text-xs">
+                    <span className="font-bold text-slate-600">បែងចែកតាមប្រភពលុយ:</span>
+                    <div className="flex items-center gap-3 font-mono font-bold">
+                      <span className="text-emerald-700">KHQR: ${revenueStats.todayKhqrRevenueUsd.toFixed(2)}</span>
+                      <span className="text-amber-700">Cash: ${revenueStats.todayCashRevenueUsd.toFixed(2)}</span>
                     </div>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="bg-white border border-orange-100 rounded-3xl p-12 text-center flex flex-col items-center justify-center min-h-[300px] shadow-xs">
-            <div className="p-4 bg-orange-50 text-orange-600 rounded-full mb-4">
-              <Grid className="w-8 h-8" />
+
+              {/* Monthly Revenue Box */}
+              <div className="bg-white border-2 border-orange-500/30 rounded-3xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden">
+                <div className="absolute top-0 right-0 bg-orange-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-2xl uppercase">
+                  ប្រចាំខែ (Monthly)
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-orange-50 text-orange-600 rounded-2xl border border-orange-100">
+                      <Calendar className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">ចំណូលប្រចាំខែនេះ (Monthly Revenue)</span>
+                      <h3 className="text-2xl md:text-3xl font-black text-orange-600 font-mono">
+                        ${revenueStats.monthRevenueUsd.toFixed(2)}
+                      </h3>
+                      <p className="text-xs font-bold text-slate-500 mt-0.5">
+                        ~ ៛{revenueStats.monthRevenueKhr.toLocaleString()} រៀល
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-slate-100">
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <span className="text-[10px] font-bold text-slate-400 block">កុម្ម៉ង់សរុបខែនេះ</span>
+                      <span className="text-lg font-black font-mono text-slate-800">{revenueStats.monthOrdersCount} លើក</span>
+                    </div>
+                    <div className="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                      <span className="text-[10px] font-bold text-slate-400 block">ចានលក់បានខែនេះ</span>
+                      <span className="text-lg font-black font-mono text-amber-600">{revenueStats.monthDishesSold} ចាន</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-orange-50/60 p-3.5 rounded-2xl border border-orange-100/80 flex justify-between items-center text-xs">
+                    <span className="font-bold text-slate-600">អត្រាកំណើន និងការលក់:</span>
+                    <span className="font-bold font-mono text-orange-700">ចំណូលស្វ័យប្រវត្ត ១០០%</span>
+                  </div>
+                </div>
+              </div>
+
             </div>
-            <h3 className="text-base font-bold text-slate-800">រកមិនឃើញមុខម្ហូបទេ</h3>
-            <p className="text-xs text-slate-400 mt-1 max-w-sm">No dishes match your search query or selected category filter. Please adjust filter parameters.</p>
+
+            {/* Top Selling Dishes Table */}
+            <div className="bg-white border border-orange-100 rounded-3xl p-6 shadow-sm space-y-4">
+              <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-orange-600" />
+                <span>មុខម្ហូបលក់ដាច់ជាងគេ (Top 5 Selling Dishes)</span>
+              </h3>
+
+              {revenueStats.topSellingItems.length > 0 ? (
+                <div className="space-y-2">
+                  {revenueStats.topSellingItems.map((item, idx) => (
+                    <div key={idx} className="flex items-center justify-between p-3.5 bg-slate-50 rounded-2xl border border-slate-100 hover:bg-orange-50/50 transition-all">
+                      <div className="flex items-center gap-3">
+                        <span className={`w-6 h-6 rounded-full flex items-center justify-center font-mono text-xs font-black text-white ${
+                          idx === 0 ? 'bg-amber-500' : idx === 1 ? 'bg-slate-400' : idx === 2 ? 'bg-amber-700' : 'bg-slate-300'
+                        }`}>
+                          #{idx + 1}
+                        </span>
+                        <span className="text-xs font-bold text-slate-800">{item.nameKh}</span>
+                      </div>
+                      <div className="flex items-center gap-4 text-xs font-mono">
+                        <span className="bg-orange-100 text-orange-700 px-2.5 py-1 rounded-xl font-bold">
+                          {item.quantity} ចាន
+                        </span>
+                        <span className="font-black text-slate-900">${item.revenue.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic text-center py-4">មិនទាន់មានទិន្នន័យលក់មុខម្ហូបឡើយ</p>
+              )}
+            </div>
           </div>
         )}
+
+        {/* TAB 2: MENU INVENTORY & OUT-OF-STOCK CHECKMARKS */}
+        {activeTab === 'menu' && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Statistics Panels */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white border border-orange-100 p-4 rounded-2xl flex items-center gap-4 shadow-xs">
+                <div className="p-3 bg-orange-50 text-orange-600 rounded-xl border border-orange-100">
+                  <Database className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">មុខម្ហូបសរុប</span>
+                  <span className="text-xl font-black font-mono text-slate-800">{stats.total} មុខ</span>
+                </div>
+              </div>
+
+              <div className="bg-white border border-orange-100 p-4 rounded-2xl flex items-center gap-4 shadow-xs">
+                <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">កំពុងលក់ធម្មតា</span>
+                  <span className="text-xl font-black font-mono text-emerald-600">{stats.available} មុខ</span>
+                </div>
+              </div>
+
+              <div className="bg-white border border-orange-100 p-4 rounded-2xl flex items-center gap-4 shadow-xs">
+                <div className="p-3 bg-rose-50 text-rose-500 rounded-xl border border-rose-100">
+                  <CheckSquare className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">គ្រីសអស់ Stock</span>
+                  <span className="text-xl font-black font-mono text-rose-600">{stats.soldOut} មុខ</span>
+                </div>
+              </div>
+
+              <div className="bg-white border border-orange-100 p-4 rounded-2xl flex items-center gap-4 shadow-xs">
+                <div className="p-3 bg-amber-50 text-amber-500 rounded-xl border border-amber-100">
+                  <TrendingUp className="w-5 h-5" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">តម្លៃមធ្យម</span>
+                  <span className="text-xl font-black font-mono text-amber-600">${stats.averagePrice.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter and Search controls */}
+            <div className="bg-white border border-orange-100 p-4 rounded-3xl flex flex-col md:flex-row gap-4 items-center justify-between shadow-xs">
+              <div className="relative w-full md:w-80">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-2.5 pl-10 pr-4 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+                  placeholder="ស្វែងរកម្ហូប..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+
+              <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+                <button
+                  type="button"
+                  className={`px-4 py-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
+                    selectedCategory === 'all'
+                      ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-xs'
+                      : 'bg-white border-slate-200 text-slate-500'
+                  }`}
+                  onClick={() => setSelectedCategory('all')}
+                >
+                  ទាំងអស់ ({stats.total})
+                </button>
+                {(Object.keys(CATEGORY_MAP) as Array<keyof typeof CATEGORY_MAP>).map(cat => {
+                  const count = menuItems.filter(m => m.category === cat).length;
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      className={`px-4 py-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer whitespace-nowrap ${
+                        selectedCategory === cat
+                          ? 'bg-orange-50 border-orange-500 text-orange-700 shadow-xs'
+                          : 'bg-white border-slate-200 text-slate-500'
+                      }`}
+                      onClick={() => setSelectedCategory(cat)}
+                    >
+                      {CATEGORY_MAP[cat].kh} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Menu Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredItems.map(item => (
+                <div 
+                  key={item.id} 
+                  className={`bg-white border rounded-3xl overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col group relative ${
+                    !item.isAvailable ? 'border-rose-300 ring-2 ring-rose-100 bg-rose-50/10' : 'border-orange-100/75'
+                  }`}
+                >
+                  <div className="h-44 relative bg-slate-100 overflow-hidden shrink-0">
+                    <img
+                      src={item.imageUrl}
+                      alt={item.nameEn}
+                      referrerPolicy="no-referrer"
+                      className={`w-full h-full object-cover transition-all duration-500 ${!item.isAvailable ? 'grayscale-[50%]' : 'group-hover:scale-105'}`}
+                    />
+                    <span className={`absolute top-3 left-3 px-2.5 py-1 rounded-xl text-[9px] font-extrabold border ${CATEGORY_MAP[item.category]?.color || 'bg-slate-100'}`}>
+                      {item.categoryKh}
+                    </span>
+
+                    {/* OUT OF STOCK CHECKMARK BADGE FOR ADMIN */}
+                    <span className={`absolute top-3 right-3 px-2.5 py-1 rounded-xl text-[9px] font-black border shadow-sm flex items-center gap-1 ${
+                      item.isAvailable 
+                        ? 'bg-emerald-500 text-white border-emerald-600' 
+                        : 'bg-rose-600 text-white border-rose-700 animate-pulse'
+                    }`}>
+                      {!item.isAvailable ? <CheckSquare className="w-3 h-3 text-white" /> : null}
+                      <span>{item.isAvailable ? 'មានស្តុក' : '☑ អស់ស្តុក (Out of Stock)'}</span>
+                    </span>
+                  </div>
+
+                  <div className="p-5 flex-1 flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-start gap-2 mb-1">
+                        <h3 className="text-base font-bold text-slate-800 line-clamp-1">{item.nameKh}</h3>
+                        <span className="text-lg font-black font-mono text-orange-600 shrink-0">${item.price.toFixed(2)}</span>
+                      </div>
+                      <h4 className="text-xs text-slate-400 font-semibold mb-3">{item.nameEn}</h4>
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-3.5 flex justify-between items-center gap-2 mt-auto">
+                      <button
+                        type="button"
+                        onClick={() => toggleItemAvailability(item)}
+                        className={`px-3 py-1.5 rounded-xl border text-[11px] font-extrabold flex items-center gap-1.5 cursor-pointer transition-all ${
+                          item.isAvailable
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100'
+                            : 'bg-rose-100 border-rose-300 text-rose-800 hover:bg-rose-200'
+                        }`}
+                      >
+                        {item.isAvailable ? <ToggleRight className="w-4 h-4" /> : <CheckSquare className="w-4 h-4 text-rose-700" />}
+                        <span>{item.isAvailable ? 'មានស្តុក' : '☑ គ្រីសអស់ Stock'}</span>
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEdit(item)}
+                          className="p-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-600 transition-all cursor-pointer"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeleteId(item.id)}
+                          className="p-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 transition-all cursor-pointer"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: WAITER SHIFT REPORTS */}
+        {activeTab === 'waiter_reports' && (
+          <div className="space-y-6 animate-fade-in">
+            <div className="bg-white border border-orange-100 rounded-3xl p-6 shadow-sm space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-sm font-black text-slate-800 flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-orange-600" />
+                  <span>របាយការណ៍ផ្ញើមកពីអ្នករត់តុ (Waiter Shift Reports Feed)</span>
+                </h3>
+                <span className="text-xs bg-orange-100 text-orange-700 font-extrabold px-3 py-1 rounded-full">
+                  {waiterReports.length} របាយការណ៍
+                </span>
+              </div>
+
+              {waiterReports.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {waiterReports.map((rep, i) => (
+                    <div key={rep.id || i} className="bg-orange-50/40 border border-orange-200 rounded-2xl p-4 space-y-3 shadow-2xs">
+                      <div className="flex justify-between items-center border-b border-orange-200/60 pb-2">
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-orange-600" />
+                          <span className="text-xs font-black text-slate-800">{rep.waiterName}</span>
+                          <span className="text-[10px] text-slate-500 font-mono">({rep.waiterPhone})</span>
+                        </div>
+                        <span className="text-[10px] text-slate-400 font-mono">
+                          {new Date(rep.submittedAt).toLocaleTimeString('km-KH', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-white p-2.5 rounded-xl border border-orange-100">
+                          <span className="text-[9px] font-bold text-slate-400 block">ប្រាក់ចំណូលលក់បាន</span>
+                          <span className="font-black text-emerald-600 font-mono text-sm">${rep.totalRevenueUsd?.toFixed(2)}</span>
+                          <span className="text-[10px] font-bold text-slate-500 block">~ ៛{rep.totalRevenueKhr?.toLocaleString()}</span>
+                        </div>
+                        <div className="bg-white p-2.5 rounded-xl border border-orange-100">
+                          <span className="text-[9px] font-bold text-slate-400 block">ចំនួនចានដែលបានលក់</span>
+                          <span className="font-black text-amber-600 font-mono text-sm">{rep.totalDishesSold} ចាន</span>
+                          <span className="text-[10px] font-bold text-slate-500 block">កុម្ម៉ង់សរុប: {rep.totalOrdersCount}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 text-slate-400">
+                  <FileText className="w-10 h-10 mx-auto mb-2 opacity-30 text-orange-600" />
+                  <p className="text-xs font-bold">មិនទាន់មានរបាយការណ៍ផ្ញើចេញពីអ្នករត់តុនៅឡើយទេ</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* Add / Edit Modal Drawer */}

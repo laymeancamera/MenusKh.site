@@ -114,7 +114,71 @@ export default function CustomerMenu({
   const [orders, setOrders] = useState<Order[]>([]);
   const [activeTab, setActiveTab] = useState<'browse' | 'history'>('browse');
 
+  // Waiter Reporting & Notification Toast
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+  const [reportSuccessMsg, setReportSuccessMsg] = useState('');
+  const [readyToast, setReadyToast] = useState<{ tableNumber: string; orderNumber: string } | null>(null);
+
   const exchangeRate = 4100;
+
+  const playOrderReadyChime = () => {
+    try {
+      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const playNote = (freq: number, start: number, duration: number) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.25, start);
+        gain.gain.exponentialRampToValueAtTime(0.001, start + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(start);
+        osc.stop(start + duration);
+      };
+      const now = audioCtx.currentTime;
+      playNote(523.25, now, 0.2);
+      playNote(659.25, now + 0.15, 0.2);
+      playNote(783.99, now + 0.3, 0.4);
+    } catch (e) {
+      console.warn('Audio chime error:', e);
+    }
+  };
+
+  const handleSendWaiterReport = async () => {
+    setIsSubmittingReport(true);
+    setReportSuccessMsg('');
+    try {
+      const totalRevUsd = orders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
+      const totalRevKhr = Math.round(totalRevUsd * exchangeRate);
+      const totalDishes = orders.reduce((sum, o) => {
+        return sum + (o.items || []).reduce((iSum, item) => iSum + (item.quantity || 1), 0);
+      }, 0);
+
+      const res = await fetch('/api/reports/waiter-shift', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          waiterName: currentUser.name,
+          waiterPhone: currentUser.phoneNumber,
+          tenantId: currentUser.tenantId || 't-default',
+          totalOrdersCount: orders.length,
+          totalRevenueUsd: totalRevUsd,
+          totalRevenueKhr: totalRevKhr,
+          totalDishesSold: totalDishes
+        })
+      });
+
+      if (res.ok) {
+        setReportSuccessMsg('ទិន្នន័យត្រូវបានបញ្ជូនទៅកាន់ Admin/ម្ចាស់ហាង រួចរាល់ដោយជោគជ័យ!');
+        setTimeout(() => setReportSuccessMsg(''), 5000);
+      }
+    } catch (e) {
+      console.error('Failed to send waiter report:', e);
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
 
   // Load customer orders from server
   const fetchOrders = async () => {
@@ -145,6 +209,11 @@ export default function CustomerMenu({
     sse.addEventListener('order_updated', (e) => {
       const updatedOrder = JSON.parse(e.data);
       if (updatedOrder.customerPhone === currentUser.phoneNumber) {
+        if (updatedOrder.status === 'ready') {
+          playOrderReadyChime();
+          setReadyToast({ tableNumber: updatedOrder.tableNumber, orderNumber: updatedOrder.orderNumber });
+          setTimeout(() => setReadyToast(null), 7000);
+        }
         setOrders(prev => {
           const index = prev.findIndex(o => o.id === updatedOrder.id);
           if (index !== -1) {
@@ -264,6 +333,29 @@ export default function CustomerMenu({
   return (
     <div className="min-h-screen bg-orange-50 flex flex-col font-sans pb-20 relative">
       
+      {/* Ready Order Toast Notification Banner for Waiters */}
+      {readyToast && (
+        <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 w-full max-w-md px-4 animate-bounce">
+          <div className="bg-emerald-600 text-white rounded-2xl p-4 shadow-2xl border-2 border-white flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-white/20 rounded-xl text-white">
+                <Utensils className="w-5 h-5 animate-spin" />
+              </div>
+              <div>
+                <h4 className="text-xs font-black">🔔 តុលេខ #{readyToast.tableNumber} - ម្ហូបរួចរាល់ហើយ!</h4>
+                <p className="text-[10px] text-emerald-100 font-medium">កូដកុម្ម៉ង់: {readyToast.orderNumber} • សូមអញ្ជើញយកទៅជូនអតិថិជន!</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setReadyToast(null)}
+              className="p-1 rounded-lg bg-white/20 hover:bg-white/30 text-white font-bold text-xs cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Dynamic KHQR scanning simulator */}
       <KHQRModal
         isOpen={isKhqrOpen}
@@ -323,6 +415,37 @@ export default function CustomerMenu({
 
       {/* Main Container */}
       <main className="flex-1 max-w-lg w-full mx-auto p-4 flex flex-col gap-4">
+        
+        {/* WAITER SHIFT REPORTING CARD FOR WAITER / STAFF */}
+        {(currentUser.role === 'waiter' || currentUser.role === 'admin') && (
+          <div className="bg-gradient-to-r from-orange-600 via-amber-500 to-orange-500 rounded-2xl p-4 text-white shadow-sm space-y-3">
+            <div className="flex justify-between items-center gap-2">
+              <div>
+                <h3 className="text-xs font-black flex items-center gap-1.5">
+                  <ClipboardList className="w-4 h-4 text-white animate-pulse" />
+                  <span>ផ្ញើរបាយការណ៍លក់ទៅ Admin (Send Shift Data to Owner)</span>
+                </h3>
+                <p className="text-[10px] text-orange-100 font-medium mt-0.5">
+                  រាល់ទិន្នន័យដែលអតិថិជនបានកុម្ម៉ង់ លុយកាក់ ចំនួនចានដែលបានលក់
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleSendWaiterReport}
+                disabled={isSubmittingReport}
+                className="px-3.5 py-2 bg-white text-orange-600 hover:bg-orange-50 rounded-xl text-xs font-black shadow-xs active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0 disabled:opacity-50"
+              >
+                {isSubmittingReport ? 'កំពុងផ្ញើ...' : 'បញ្ជូនទៅ Admin ភ្លាមៗ'}
+              </button>
+            </div>
+
+            {reportSuccessMsg && (
+              <div className="bg-emerald-500/30 border border-white/30 p-2.5 rounded-xl text-[11px] font-bold text-white flex items-center gap-2">
+                <span>✓ {reportSuccessMsg}</span>
+              </div>
+            )}
+          </div>
+        )}
         
         {/* Navigation Tabs */}
         <div className="flex bg-white p-1 rounded-xl border border-orange-200/55 shadow-sm">

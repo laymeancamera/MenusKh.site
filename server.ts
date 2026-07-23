@@ -527,6 +527,44 @@ app.put('/api/orders/:id/status', (req, res) => {
   res.json(order);
 });
 
+// Waiter Shift Reports Endpoints
+app.get('/api/reports/waiter-shift', (req, res) => {
+  const { tenantId } = req.query;
+  let reports = database.waiterReports || [];
+  if (tenantId) {
+    reports = reports.filter((r: any) => r.tenantId === tenantId);
+  }
+  res.json(reports);
+});
+
+app.post('/api/reports/waiter-shift', (req, res) => {
+  const { waiterName, waiterPhone, tenantId, totalOrdersCount, totalRevenueUsd, totalRevenueKhr, totalDishesSold, orderIds } = req.body;
+  
+  if (!waiterName || !waiterPhone) {
+    return res.status(400).json({ error: 'ព័ត៌មានអ្នករត់តុមិនគ្រប់គ្រាន់ទេ' });
+  }
+
+  const newReport = {
+    id: 'wr-' + Math.random().toString(36).substr(2, 9),
+    waiterName,
+    waiterPhone,
+    tenantId: tenantId || 't-default',
+    totalOrdersCount: Number(totalOrdersCount || 0),
+    totalRevenueUsd: Number(totalRevenueUsd || 0),
+    totalRevenueKhr: Number(totalRevenueKhr || 0),
+    totalDishesSold: Number(totalDishesSold || 0),
+    orderIds: orderIds || [],
+    submittedAt: new Date().toISOString()
+  };
+
+  if (!database.waiterReports) database.waiterReports = [];
+  database.waiterReports.unshift(newReport);
+  saveDB();
+
+  broadcastToSSE('waiter_report_submitted', newReport);
+  res.status(201).json(newReport);
+});
+
 // --- System Owner (SaaS Creator) Endpoints ---
 
 // Get System-wide Settings for Login Screen
