@@ -8,7 +8,8 @@ import {
   EyeOff, 
   Info,
   Loader2,
-  CheckCircle2
+  CheckCircle2,
+  Send
 } from 'lucide-react';
 
 interface LoginScreenProps {
@@ -160,29 +161,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         {/* Form Body */}
         <div className="p-6 sm:p-8 space-y-5">
           
-          {/* Demo Credentials Quick Box */}
-          <div 
-            onClick={autofillDemo}
-            className="bg-amber-50 border border-amber-200/80 rounded-2xl p-3 text-amber-900 text-xs flex items-start gap-2.5 cursor-pointer hover:bg-amber-100/80 transition-all group"
-            title="ចុចទីនេះដើម្បីបញ្ចូលព័ត៌មានចូលប្រើប្រាស់ដោយស្វ័យប្រវត្តិ"
-          >
-            <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <div className="flex justify-between items-center">
-                <span className="font-extrabold text-[11px] text-amber-800">
-                  ព័ត៌មានចូលប្រើប្រាស់ (Information Login):
-                </span>
-                <span className="text-[9px] font-bold text-amber-700 underline group-hover:text-amber-900">
-                  ចុចដើម្បីបញ្ចូល
-                </span>
-              </div>
-              <div className="mt-1 font-mono text-[11px] text-amber-900 bg-amber-100/60 p-1.5 rounded-xl border border-amber-200/50 flex justify-between">
-                <span>Username: <strong className="text-orange-700">menuskh</strong></span>
-                <span>Password: <strong className="text-orange-700">123456</strong></span>
-              </div>
-            </div>
-          </div>
-
           {/* Error Banner */}
           {error && (
             <div className="bg-rose-50 border border-rose-200 text-rose-700 px-3.5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 animate-shake">
@@ -268,6 +246,28 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           </p>
         </div>
 
+      </div>
+
+      {/* Business Partner Contact / Telegram Box */}
+      <div className="mt-4 w-full max-w-sm bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-2xl p-4 text-center text-slate-200 shadow-2xl space-y-2.5 relative z-10">
+        <div className="flex items-center justify-center gap-2 text-amber-400 text-xs font-bold">
+          <Send className="w-4 h-4 text-sky-400" />
+          <span>ព័ត៌មានដៃគូអាជីវកម្ម (Business Partnership)</span>
+        </div>
+        <p className="text-[11px] text-slate-300 leading-relaxed">
+          លោកអ្នកដែលចង់ទិញ ឬយកប្រព័ន្ធនេះទៅប្រើប្រាស់ក្នុងអាជីវកម្ម សូមទាក់ទងមកយើងខ្ញុំតាមរយៈ Telegram៖
+        </p>
+        <a
+          href="https://t.me/laymeancamera"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] w-full"
+        >
+          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
+            <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.97 9.28c-.15.67-.55.83-1.12.52l-3.01-2.22-1.45 1.4c-.16.16-.3.3-.61.3l.21-3.04 5.54-5.01c.24-.22-.05-.34-.37-.13l-6.85 4.31-2.95-.92c-.64-.2-.65-.64.13-.95l11.53-4.44c.53-.2 1 .12.83.9z"/>
+          </svg>
+          <span>ទាក់ទងតាម Telegram (@laymeancamera)</span>
+        </a>
       </div>
 
     </div>
