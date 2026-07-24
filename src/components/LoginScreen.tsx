@@ -134,19 +134,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
         <div className="bg-slate-900 px-6 sm:px-8 py-8 text-center relative overflow-hidden border-b border-slate-800">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(249,115,22,0.2),rgba(255,255,255,0))]" />
           
-          <div className="inline-flex mb-3 shadow-inner relative z-10">
-            {settings.loginLogoUrl ? (
-              <img 
-                src={settings.loginLogoUrl} 
-                alt="System Logo" 
-                referrerPolicy="no-referrer"
-                className="w-16 h-16 rounded-2xl object-cover border border-slate-700 bg-slate-950 p-1 shadow-md"
-              />
-            ) : (
-              <div className="inline-flex p-3.5 rounded-2xl bg-gradient-to-tr from-orange-600 to-amber-500 text-white shadow-lg shadow-orange-500/20">
-                <Utensils className="w-8 h-8" />
-              </div>
-            )}
+          <div className="inline-flex mb-3 relative z-10">
+            <img 
+              src={settings.loginLogoUrl || '/logo.jpg'} 
+              alt="System Logo" 
+              referrerPolicy="no-referrer"
+              className="w-20 h-20 rounded-full object-cover border-2 border-amber-500/50 bg-white p-0.5 shadow-xl hover:scale-105 transition-transform"
+            />
           </div>
           
           <h1 className="text-xl font-moul text-orange-400 leading-normal relative z-10">
@@ -164,13 +158,13 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           <div 
             onClick={autofillDemo}
             className="bg-amber-50 border border-amber-200/80 rounded-2xl p-3 text-amber-900 text-xs flex items-start gap-2.5 cursor-pointer hover:bg-amber-100/80 transition-all group"
-            title="ចុចទីនេះដើម្បីបញ្ចូលគណនីសាកល្បងដោយស្វ័យប្រវត្តិ"
+            title="ចុចទីនេះដើម្បីបញ្ចូលព័ត៌មានចូលប្រើប្រាស់ដោយស្វ័យប្រវត្តិ"
           >
             <Info className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div className="flex-1">
               <div className="flex justify-between items-center">
                 <span className="font-extrabold text-[11px] text-amber-800">
-                  សម្រាប់សាកល្បង (Demo Login):
+                  ព័ត៌មានចូលប្រើប្រាស់ (Information Login):
                 </span>
                 <span className="text-[9px] font-bold text-amber-700 underline group-hover:text-amber-900">
                   ចុចដើម្បីបញ្ចូល
