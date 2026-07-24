@@ -132,10 +132,45 @@
   ],
   "tenants": [],
   "systemSettings": {
-    "loginLogoUrl": "",
+    "loginLogoUrl": "/logo.jpg",
     "loginBgType": "default",
     "loginBgUrl": "",
     "titleKh": "ម៉ឺនុយខ្មែរ (Menus KH)",
     "descKh": "ប្រព័ន្ធគ្រប់គ្រងម៉ឺនុយ និងការកុម្ម៉ង់អាហារក្នុងហាងបែបទំនើប"
+  },
+  "systemUpdates": {
+    "latestVersion": "3.5",
+    "releaseDate": "2026-07-21",
+    "changeLogKh": "លក្ខណៈពិសេសថ្មីៗជំនាន់ 3.5:\n1. បន្ថែមមុខម្ហូបពិសេសលំដាប់ Premium ចំនួន ៣ ប្រភេទ\n2. បង្កើនល្បឿនដំណើរការប្រព័ន្ធ និងកែសម្រួលផ្ទៃកម្មវិធីឱ្យកាន់តែស្រស់ស្អាត\n3. ធ្វើឱ្យប្រសើរឡើងនូវការបោះពុម្ពវិក្កយបត្រ (Invoice Printing) និង QR Code\n4. ស្វ័យប្រវត្តភាសាខ្មែរពេញលេញសម្រាប់រាយការណ៍",
+    "changeLogEn": "New Features in Version 3.5:\n1. Added 3 premium special dishes with dynamic customization\n2. Enhanced UI performance and layout aesthetics\n3. Improved invoice printing & dynamic KHQR codes\n4. Full Khmer localization for advanced reporting",
+    "menuTemplate": [
+      {
+        "nameKh": "អាម៉ុកត្រីភ្នំពេញ Premium",
+        "nameEn": "Phnom Penh Premium Fish Amok",
+        "price": 8.5,
+        "category": "dish",
+        "descriptionKh": "អាម៉ុកត្រីបែបប្រពៃណីខ្មែរចម្អិនក្នុងកូនក្អមដីដុត ក្លិនឈ្ងុយគ្រឿងខ្ទិះដូងជ្រៅ បន្ថែមសាច់ក្តាម",
+        "descriptionEn": "Traditional Khmer fish amok slow-cooked in a clay pot, rich in coconut cream with fresh crab meat",
+        "imageUrl": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&auto=format&fit=crop&q=80"
+      },
+      {
+        "nameKh": "ស៊ុបកន្ទុយគោពិសេសលេខ១",
+        "nameEn": "Special Oxtail Soup No.1",
+        "price": 12,
+        "category": "soup",
+        "descriptionKh": "ស៊ុបកន្ទុយគោរម្ងាស់ ២៤ ម៉ោង ជាមួយឱសថបុរាណ រសជាតិដិតដល់ ជំនួយសុខភាព",
+        "descriptionEn": "24-hour slow-simmered oxtail soup with traditional herbs, rich and nourishing",
+        "imageUrl": "https://images.unsplash.com/photo-1547592180-85f173990554?w=600&auto=format&fit=crop&q=80"
+      },
+      {
+        "nameKh": "តែបៃតងខ្ទិះដូងត្រជាក់ចិត្ត",
+        "nameEn": "Iced Coconut Matcha Latte",
+        "price": 3.5,
+        "category": "drink",
+        "descriptionKh": "តែបៃតង Matcha ជប៉ុនលាយជាមួយទឹកខ្ទិះដូងខ្មែរស្រស់ ផ្អែមស្រទន់ ឈ្ងុយប្លែកមាត់",
+        "descriptionEn": "Japanese Matcha green tea layered with fresh Khmer coconut milk, subtly sweet and aromatic",
+        "imageUrl": "https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&auto=format&fit=crop&q=80"
+      }
+    ]
   }
 }

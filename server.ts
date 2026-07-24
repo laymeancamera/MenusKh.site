@@ -29,7 +29,7 @@ let database: any = {
   menu: [] as MenuItem[],
   tenants: [] as any[],
   systemSettings: {
-    loginLogoUrl: '',
+    loginLogoUrl: '/logo.jpg',
     loginBgType: 'default', // 'default' | 'image' | 'video'
     loginBgUrl: '',
     titleKh: 'ម៉ឺនុយខ្មែរ (Menus KH)',

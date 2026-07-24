@@ -139,6 +139,12 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
               src={settings.loginLogoUrl || '/logo.jpg'} 
               alt="System Logo" 
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                const target = e.currentTarget;
+                if (target.src !== window.location.origin + '/logo.jpg') {
+                  target.src = '/logo.jpg';
+                }
+              }}
               className="w-20 h-20 rounded-full object-cover border-2 border-amber-500/50 bg-white p-0.5 shadow-xl hover:scale-105 transition-transform"
             />
           </div>
