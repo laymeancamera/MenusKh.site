@@ -4,7 +4,7 @@ import {
   Check, X, LogOut, Utensils, TrendingUp, Sparkles, Database, 
   AlertTriangle, Grid, ToggleLeft, ToggleRight, CheckCircle, HelpCircle,
   Upload, Loader2, Calendar, ArrowRight, Palette, Layers, CheckSquare,
-  BarChart3, Clock, FileText, User, RefreshCw, Send, PieChart
+  BarChart3, Clock, FileText, User, RefreshCw, Send, PieChart, CloudLightning
 } from 'lucide-react';
 import { MenuItem, User as UserType, Order } from '../types.js';
 import { THEME_PRESETS } from '../theme.js';
@@ -40,6 +40,25 @@ export default function AdminDashboard({ currentUser, onLogout, menuItems, onMen
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [activeTab, setActiveTab] = useState<'revenue' | 'menu' | 'waiter_reports'>('revenue');
+
+  // System Update state
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [updateInfo, setUpdateInfo] = useState<any>(null);
+  const [applyingUpdate, setApplyingUpdate] = useState(false);
+  const [updateSuccess, setUpdateSuccess] = useState(false);
+
+  const fetchUpdateStatus = async () => {
+    try {
+      const tenantId = currentUser?.tenantId || 't-default';
+      const res = await fetch(`/api/system/update/check?tenantId=${tenantId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUpdateInfo(data);
+      }
+    } catch (e) {
+      console.error('Failed to check for updates:', e);
+    }
+  };
 
   // Real-time Orders & Waiter Reports for Revenue Calculations
   const [orders, setOrders] = useState<Order[]>([]);

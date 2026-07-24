@@ -529,9 +529,9 @@ export default function OwnerDashboard({ currentUser, onLogout }: OwnerDashboard
   };
 
   const filteredTenants = tenants.filter(t => 
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.ownerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    t.adminPhone.includes(searchQuery)
+    (t.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (t.ownerName || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (t.adminPhone || '').includes(searchQuery)
   );
 
   const totalCount = tenants.length;
