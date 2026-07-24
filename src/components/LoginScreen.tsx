@@ -237,6 +237,30 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
             </button>
           </form>
 
+          {/* Business Partner Contact / Telegram Box Inside Card */}
+          <div className="pt-1">
+            <div className="bg-sky-50/80 border border-sky-200/80 rounded-2xl p-3 text-center space-y-2">
+              <div className="flex items-center justify-center gap-1.5 text-sky-800 text-[11px] font-bold">
+                <Send className="w-3.5 h-3.5 text-sky-600" />
+                <span>ព័ត៌មានដៃគូអាជីវកម្ម (Business Partnership)</span>
+              </div>
+              <p className="text-[10px] text-slate-600 leading-relaxed">
+                លោកអ្នកដែលចង់ទិញ ឬយកប្រព័ន្ធនេះទៅប្រើប្រាស់ក្នុងអាជីវកម្ម សូមទាក់ទងមកយើងខ្ញុំតាមរយៈ Telegram៖
+              </p>
+              <a
+                href="https://t.me/laymeancamera"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white text-[11px] font-bold rounded-xl shadow-md shadow-sky-500/20 transition-all hover:scale-[1.01] active:scale-[0.99] w-full"
+              >
+                <svg className="w-3.5 h-3.5 fill-current" viewBox="0 0 24 24">
+                  <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.97 9.28c-.15.67-.55.83-1.12.52l-3.01-2.22-1.45 1.4c-.16.16-.3.3-.61.3l.21-3.04 5.54-5.01c.24-.22-.05-.34-.37-.13l-6.85 4.31-2.95-.92c-.64-.2-.65-.64.13-.95l11.53-4.44c.53-.2 1 .12.83.9z"/>
+                </svg>
+                <span>ទាក់ទងតាម Telegram (@laymeancamera)</span>
+              </a>
+            </div>
+          </div>
+
         </div>
 
         {/* Card Footer */}
@@ -246,28 +270,6 @@ export default function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
           </p>
         </div>
 
-      </div>
-
-      {/* Business Partner Contact / Telegram Box */}
-      <div className="mt-4 w-full max-w-sm bg-slate-900/90 backdrop-blur-md border border-slate-700/70 rounded-2xl p-4 text-center text-slate-200 shadow-2xl space-y-2.5 relative z-10">
-        <div className="flex items-center justify-center gap-2 text-amber-400 text-xs font-bold">
-          <Send className="w-4 h-4 text-sky-400" />
-          <span>ព័ត៌មានដៃគូអាជីវកម្ម (Business Partnership)</span>
-        </div>
-        <p className="text-[11px] text-slate-300 leading-relaxed">
-          លោកអ្នកដែលចង់ទិញ ឬយកប្រព័ន្ធនេះទៅប្រើប្រាស់ក្នុងអាជីវកម្ម សូមទាក់ទងមកយើងខ្ញុំតាមរយៈ Telegram៖
-        </p>
-        <a
-          href="https://t.me/laymeancamera"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-500/30 transition-all hover:scale-[1.02] active:scale-[0.98] w-full"
-        >
-          <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-            <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.56 8.16l-1.97 9.28c-.15.67-.55.83-1.12.52l-3.01-2.22-1.45 1.4c-.16.16-.3.3-.61.3l.21-3.04 5.54-5.01c.24-.22-.05-.34-.37-.13l-6.85 4.31-2.95-.92c-.64-.2-.65-.64.13-.95l11.53-4.44c.53-.2 1 .12.83.9z"/>
-          </svg>
-          <span>ទាក់ទងតាម Telegram (@laymeancamera)</span>
-        </a>
       </div>
 
     </div>
